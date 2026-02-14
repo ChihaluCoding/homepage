@@ -25,8 +25,11 @@ export function ParticlesBackground() {
     if (!ctx) return;
 
     const resizeCanvas = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      const parent = canvas.parentElement;
+      if (!parent) return;
+
+      canvas.width = parent.clientWidth;
+      canvas.height = parent.clientHeight;
     };
 
     resizeCanvas();
@@ -103,8 +106,8 @@ export function ParticlesBackground() {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 z-0 pointer-events-none"
-      style={{ opacity: 1 }}
+      className="absolute inset-0 z-0 pointer-events-none"
+      style={{ opacity: 0.45 }}
     />
   );
 }
