@@ -70,14 +70,7 @@ export function Navigation() {
               ))}
             </nav>
 
-            <div className="hidden lg:block">
-              <a href={`${baseUrl}youtube/`}>
-                <Button className="bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white shadow-lg shadow-red-200">
-                  <Youtube className="w-4 h-4 mr-2" />
-                  チャンネル登録
-                </Button>
-              </a>
-            </div>
+
 
             <motion.button
               whileTap={{ scale: 0.9 }}
@@ -121,12 +114,6 @@ export function Navigation() {
                 transition={{ delay: 0.4 }}
                 className="mt-6"
               >
-                <a href={`${baseUrl}youtube/`}>
-                  <Button size="lg" className="bg-gradient-to-r from-red-500 to-rose-500 text-white">
-                    <Youtube className="w-5 h-5 mr-2" />
-                    チャンネル登録
-                  </Button>
-                </a>
               </motion.div>
             </nav>
           </motion.div>

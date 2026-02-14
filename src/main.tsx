@@ -128,15 +128,7 @@ function HomePage() {
                 transition={{ delay: 0.6 }}
                 className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
               >
-                <a href={`${baseUrl}youtube/`}>
-                  <Button
-                    size="lg"
-                    className="bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white font-semibold px-8 shadow-lg shadow-red-200"
-                  >
-                    <Youtube className="w-5 h-5 mr-2" />
-                    YouTube
-                  </Button>
-                </a>
+
                 <a href={`${baseUrl}about/`}>
                   <Button
                     size="lg"
