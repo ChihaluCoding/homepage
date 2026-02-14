@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Navigation } from "@/components/Navigation";
+import { ParticlesBackground } from "@/components/ParticlesBackground";
 import { Footer } from "@/sections/Footer";
 import "@/index.css";
 
@@ -375,6 +376,8 @@ function WorksPage() {
       <Navigation />
       
       <section className="py-24 relative overflow-hidden bg-gradient-to-b from-white via-cyan-50/30 to-white">
+        <ParticlesBackground />
+
         <div className="absolute inset-0">
           <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-200 to-transparent" />
         </div>

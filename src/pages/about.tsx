@@ -5,6 +5,7 @@ import { User, Heart, Code2, Coffee, Mail, Twitter, Github, Youtube, MapPin, Gam
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Navigation } from "@/components/Navigation";
+import { ParticlesBackground } from "@/components/ParticlesBackground";
 import { Footer } from "@/sections/Footer";
 import "@/index.css";
 
@@ -36,6 +37,8 @@ function AboutPage() {
       <Navigation />
       
       <section className="py-24 relative overflow-hidden bg-white">
+        <ParticlesBackground />
+
         <div className="absolute inset-0">
           <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-200 to-transparent" />
           <div className="absolute bottom-1/3 right-0 w-96 h-96 bg-cyan-100/50 rounded-full blur-3xl" />

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Navigation } from "@/components/Navigation";
+import { ParticlesBackground } from "@/components/ParticlesBackground";
 import { Footer } from "@/sections/Footer";
 import "@/index.css";
 
@@ -97,6 +98,8 @@ function YouTubePage() {
       <Navigation />
       
       <section className="py-24 relative overflow-hidden bg-white">
+        <ParticlesBackground />
+
         <div className="absolute inset-0">
           <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-red-200 to-transparent" />
         </div>
