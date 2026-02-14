@@ -90,7 +90,7 @@ function AboutPage() {
                     <div className="relative">
                       <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-cyan-400 to-sky-500 p-1">
                         <div className="w-full h-full rounded-xl bg-white flex items-center justify-center overflow-hidden">
-                          <img src="/icon.png" alt="Avatar" className="w-full h-full object-cover" />
+                          <img src={`${baseUrl}avatar.png`} alt="Avatar" className="w-full h-full object-cover" />
                         </div>
                       </div>
                       <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-emerald-400 rounded-full border-4 border-white flex items-center justify-center">
