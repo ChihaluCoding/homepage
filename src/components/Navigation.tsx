@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Gamepad2, Wrench, User, Home, Youtube } from "lucide-react";
+import { Menu, X, Package, User, Home, Youtube } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const baseUrl = import.meta.env.BASE_URL || "/";
@@ -10,8 +10,7 @@ const baseUrl = import.meta.env.BASE_URL || "/";
 const navItems = [
   { name: "ホーム", href: baseUrl, icon: Home },
   { name: "YouTube", href: `${baseUrl}youtube/`, icon: Youtube },
-  { name: "ゲーム", href: `${baseUrl}games/`, icon: Gamepad2 },
-  { name: "ツール", href: `${baseUrl}tools/`, icon: Wrench },
+  { name: "配布", href: `${baseUrl}works/`, icon: Package },
   { name: "About", href: `${baseUrl}about/`, icon: User },
 ];
 
