@@ -10,7 +10,7 @@ const baseUrl = import.meta.env.BASE_URL || "/";
 const navItems = [
   { name: "ホーム", href: baseUrl, icon: Home },
   { name: "YouTube", href: `${baseUrl}youtube/`, icon: Youtube },
-  { name: "配布", href: `${baseUrl}works/`, icon: Package },
+  { name: "SHOP", href: `${baseUrl}works/`, icon: Package },
   { name: "About", href: `${baseUrl}about/`, icon: User },
 ];
 

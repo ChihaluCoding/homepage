@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import { motion, AnimatePresence } from "framer-motion";
-import { Package, ExternalLink, Play, X, ChevronLeft, Gamepad2, Wrench } from "lucide-react";
+import { Package, ExternalLink, Play, X, ChevronLeft, Gamepad2, Wrench, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -339,10 +339,36 @@ function WorkDetailDialog({
   );
 }
 
+type SortType = 'default' | 'price-asc' | 'price-desc';
+
 function WorksPage() {
   const baseUrl = import.meta.env.BASE_URL || "/";
   const [selectedGame, setSelectedGame] = useState<typeof games[0] | null>(null);
   const [selectedTool, setSelectedTool] = useState<typeof tools[0] | null>(null);
+  const [gameSort, setGameSort] = useState<SortType>('default');
+  const [toolSort, setToolSort] = useState<SortType>('default');
+
+  const sortGames = (games: typeof games) => {
+    switch (gameSort) {
+      case 'price-asc':
+        return [...games].sort((a, b) => a.price - b.price);
+      case 'price-desc':
+        return [...games].sort((a, b) => b.price - a.price);
+      default:
+        return games;
+    }
+  };
+
+  const sortTools = (tools: typeof tools) => {
+    switch (toolSort) {
+      case 'price-asc':
+        return [...tools].sort((a, b) => a.price - b.price);
+      case 'price-desc':
+        return [...tools].sort((a, b) => b.price - a.price);
+      default:
+        return tools;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -374,15 +400,15 @@ function WorksPage() {
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-100 border border-cyan-200 mb-6">
               <Package className="w-4 h-4 text-cyan-500" />
-              <span className="text-sm text-cyan-600 font-medium">Works</span>
+              <span className="text-sm text-cyan-600 font-medium">SHOP</span>
             </div>
 
             <h1 className="text-3xl lg:text-5xl font-bold mb-4">
-              <span className="text-slate-700">配布</span>
-              <span className="text-gradient">作品</span>
+              <span className="text-slate-700">BOOTH</span>
+              <span className="text-gradient">SHOP</span>
             </h1>
             <p className="text-slate-500 text-lg max-w-2xl mx-auto">
-              制作したゲームやツールをBOOTHにて配布しています。
+              制作したゲームやツールをBOOTHにて販売しています。
               各作品の詳細ページでトレーラーやスクリーンショットをご覧いただけます。
             </p>
           </motion.div>
@@ -401,13 +427,35 @@ function WorksPage() {
 
             {/* ゲームタブ */}
             <TabsContent value="games">
+              <div className="flex justify-end mb-4">
+                <div className="flex gap-2">
+                  <Button
+                    variant={gameSort === 'price-asc' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setGameSort(gameSort === 'price-asc' ? 'default' : 'price-asc')}
+                    className={gameSort === 'price-asc' ? 'bg-cyan-500 hover:bg-cyan-600' : ''}
+                  >
+                    <ArrowUpDown className="w-4 h-4 mr-1" />
+                    安い順
+                  </Button>
+                  <Button
+                    variant={gameSort === 'price-desc' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setGameSort(gameSort === 'price-desc' ? 'default' : 'price-desc')}
+                    className={gameSort === 'price-desc' ? 'bg-cyan-500 hover:bg-cyan-600' : ''}
+                  >
+                    <ArrowUpDown className="w-4 h-4 mr-1" />
+                    高い順
+                  </Button>
+                </div>
+              </div>
               <motion.div
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
               >
-                {games.map((game) => (
+                {sortGames(games).map((game) => (
                   <motion.div key={game.id} variants={itemVariants}>
                     <Card 
                       className="group bg-white border-slate-200 hover:border-cyan-300 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-100 overflow-hidden cursor-pointer h-full flex flex-col"
@@ -469,13 +517,35 @@ function WorksPage() {
 
             {/* ツールタブ */}
             <TabsContent value="tools">
+              <div className="flex justify-end mb-4">
+                <div className="flex gap-2">
+                  <Button
+                    variant={toolSort === 'price-asc' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setToolSort(toolSort === 'price-asc' ? 'default' : 'price-asc')}
+                    className={toolSort === 'price-asc' ? 'bg-cyan-500 hover:bg-cyan-600' : ''}
+                  >
+                    <ArrowUpDown className="w-4 h-4 mr-1" />
+                    安い順
+                  </Button>
+                  <Button
+                    variant={toolSort === 'price-desc' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setToolSort(toolSort === 'price-desc' ? 'default' : 'price-desc')}
+                    className={toolSort === 'price-desc' ? 'bg-cyan-500 hover:bg-cyan-600' : ''}
+                  >
+                    <ArrowUpDown className="w-4 h-4 mr-1" />
+                    高い順
+                  </Button>
+                </div>
+              </div>
               <motion.div
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
               >
-                {tools.map((tool) => (
+                {sortTools(tools).map((tool) => (
                   <motion.div key={tool.id} variants={itemVariants}>
                     <Card 
                       className="group bg-white border-slate-200 hover:border-cyan-300 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-100 h-full flex flex-col cursor-pointer"

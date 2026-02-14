@@ -69,9 +69,8 @@ export function ParticlesBackground() {
       });
 
       // Draw connections
-      ctx.globalAlpha = 0.1;
       ctx.strokeStyle = "#22d3ee";
-      ctx.lineWidth = 0.5;
+      ctx.lineWidth = 1;
 
       for (let i = 0; i < particlesRef.current.length; i++) {
         for (let j = i + 1; j < particlesRef.current.length; j++) {
@@ -79,11 +78,11 @@ export function ParticlesBackground() {
           const dy = particlesRef.current[i].y - particlesRef.current[j].y;
           const distance = Math.sqrt(dx * dx + dy * dy);
 
-          if (distance < 100) {
+          if (distance < 150) {
             ctx.beginPath();
             ctx.moveTo(particlesRef.current[i].x, particlesRef.current[i].y);
             ctx.lineTo(particlesRef.current[j].x, particlesRef.current[j].y);
-            ctx.globalAlpha = 0.1 * (1 - distance / 100);
+            ctx.globalAlpha = 0.4 * (1 - distance / 150);
             ctx.stroke();
           }
         }
