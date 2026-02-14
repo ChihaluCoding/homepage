@@ -42,7 +42,7 @@ export function ParticlesBackground() {
       size: Math.random() * 3 + 1,
       speedX: (Math.random() - 0.5) * 0.5,
       speedY: (Math.random() - 0.5) * 0.5,
-      opacity: Math.random() * 0.5 + 0.2,
+      opacity: Math.random() * 0.6 + 0.4,
       color: colors[Math.floor(Math.random() * colors.length)],
     }));
 
@@ -104,8 +104,8 @@ export function ParticlesBackground() {
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 z-0 pointer-events-none"
-      style={{ opacity: 0.6 }}
+      className="absolute inset-0 z-[1] pointer-events-none"
+      style={{ opacity: 1 }}
     />
   );
 }
