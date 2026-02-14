@@ -225,7 +225,7 @@ function WorkDetailDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto [&[data-state=open]]:animate-in [&[data-state=open]]:fade-in-0 [&[data-state=closed]]:animate-out [&[data-state=closed]]:fade-out-0 [&[data-state=open]]:zoom-in-95 [&[data-state=closed]]:zoom-out-95">
         <DialogHeader>
           <div className="flex items-center gap-3 mb-2">
             <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${work.color} flex items-center justify-center text-2xl`}>
