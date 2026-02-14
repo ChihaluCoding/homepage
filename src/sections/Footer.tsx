@@ -33,6 +33,8 @@ const socialLinks = [
 ];
 
 export function Footer() {
+  const baseUrl = import.meta.env.BASE_URL || "/";
+
   return (
     <footer className="relative pt-20 pb-8 overflow-hidden bg-gradient-to-t from-cyan-50/50 to-white">
       <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-200 to-transparent" />
@@ -46,7 +48,7 @@ export function Footer() {
             transition={{ duration: 0.6 }}
             className="lg:col-span-1"
           >
-            <a href="/" className="flex items-center gap-3 mb-4">
+            <a href={baseUrl} className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-sky-500 flex items-center justify-center shadow-lg shadow-cyan-200">
                 <span className="text-white font-bold text-lg">C</span>
               </div>

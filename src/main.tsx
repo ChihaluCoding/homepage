@@ -8,26 +8,28 @@ import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/sections/Footer";
 import "@/index.css";
 
+const baseUrl = import.meta.env.BASE_URL || "/";
+
 const features = [
   {
     icon: Gamepad2,
     title: "ゲーム",
     description: "自作ゲームの配布",
-    href: "/games/",
+    href: `${baseUrl}games/`,
     color: "from-purple-400 to-pink-400",
   },
   {
     icon: Wrench,
     title: "ツール",
     description: "便利ツールの配布",
-    href: "/tools/",
+    href: `${baseUrl}tools/`,
     color: "from-cyan-400 to-sky-400",
   },
   {
     icon: Youtube,
     title: "YouTube",
     description: "動画チャンネル",
-    href: "/youtube/",
+    href: `${baseUrl}youtube/`,
     color: "from-red-400 to-rose-400",
   },
 ];
@@ -55,7 +57,7 @@ function HomePage() {
                 <div className="absolute inset-0 bg-gradient-to-t from-cyan-200/40 via-transparent to-transparent rounded-full blur-2xl scale-110" />
                 
                 <motion.img
-                  src="/character.png"
+                  src={`${baseUrl}character.png`}
                   alt="Character"
                   className="w-full h-full object-contain drop-shadow-xl"
                   animate={{ y: [0, -10, 0] }}
@@ -126,7 +128,7 @@ function HomePage() {
                 transition={{ delay: 0.6 }}
                 className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
               >
-                <a href="/youtube/">
+                <a href={`${baseUrl}youtube/`}>
                   <Button
                     size="lg"
                     className="bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white font-semibold px-8 shadow-lg shadow-red-200"
@@ -135,7 +137,7 @@ function HomePage() {
                     YouTube
                   </Button>
                 </a>
-                <a href="/about/">
+                <a href={`${baseUrl}about/`}>
                   <Button
                     size="lg"
                     variant="outline"
@@ -154,7 +156,7 @@ function HomePage() {
                 className="flex gap-4 mt-8 justify-center lg:justify-start"
               >
                 {[
-                  { icon: Youtube, href: "/youtube/" },
+                  { icon: Youtube, href: `${baseUrl}youtube/` },
                   { icon: Twitter, href: "#" },
                   { icon: Github, href: "#" },
                 ].map((social) => (

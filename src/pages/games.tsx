@@ -99,6 +99,7 @@ const itemVariants = {
 };
 
 function GamesPage() {
+  const baseUrl = import.meta.env.BASE_URL || "/";
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -114,7 +115,7 @@ function GamesPage() {
             animate={{ opacity: 1, x: 0 }}
             className="mb-8"
           >
-            <a href="/">
+            <a href={baseUrl}>
               <Button variant="ghost" className="text-slate-500 hover:text-cyan-600">
                 <ChevronLeft className="w-5 h-5 mr-1" />
                 ホームに戻る

@@ -5,12 +5,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Gamepad2, Wrench, User, Home, Youtube } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+const baseUrl = import.meta.env.BASE_URL || "/";
+
 const navItems = [
-  { name: "ホーム", href: "/", icon: Home },
-  { name: "YouTube", href: "/youtube/", icon: Youtube },
-  { name: "ゲーム", href: "/games/", icon: Gamepad2 },
-  { name: "ツール", href: "/tools/", icon: Wrench },
-  { name: "About", href: "/about/", icon: User },
+  { name: "ホーム", href: baseUrl, icon: Home },
+  { name: "YouTube", href: `${baseUrl}youtube/`, icon: Youtube },
+  { name: "ゲーム", href: `${baseUrl}games/`, icon: Gamepad2 },
+  { name: "ツール", href: `${baseUrl}tools/`, icon: Wrench },
+  { name: "About", href: `${baseUrl}about/`, icon: User },
 ];
 
 export function Navigation() {
@@ -70,7 +72,7 @@ export function Navigation() {
             </nav>
 
             <div className="hidden lg:block">
-              <a href="/youtube/">
+              <a href={`${baseUrl}youtube/`}>
                 <Button className="bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white shadow-lg shadow-red-200">
                   <Youtube className="w-4 h-4 mr-2" />
                   チャンネル登録
@@ -120,7 +122,7 @@ export function Navigation() {
                 transition={{ delay: 0.4 }}
                 className="mt-6"
               >
-                <a href="/youtube/">
+                <a href={`${baseUrl}youtube/`}>
                   <Button size="lg" className="bg-gradient-to-r from-red-500 to-rose-500 text-white">
                     <Youtube className="w-5 h-5 mr-2" />
                     チャンネル登録
