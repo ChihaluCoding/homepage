@@ -14,8 +14,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: path.resolve(__dirname, 'index.html'),
-        games: path.resolve(__dirname, 'games/index.html'),
-        tools: path.resolve(__dirname, 'tools/index.html'),
+        works: path.resolve(__dirname, 'works/index.html'),
         youtube: path.resolve(__dirname, 'youtube/index.html'),
         about: path.resolve(__dirname, 'about/index.html'),
       },
