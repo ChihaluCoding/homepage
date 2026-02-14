@@ -33,16 +33,16 @@ export function ParticlesBackground() {
     window.addEventListener("resize", resizeCanvas);
 
     // Initialize particles
-    const particleCount = 50;
+    const particleCount = 80;
     const colors = ["#22d3ee", "#38bdf8", "#60a5fa", "#67e8f9"];
     
     particlesRef.current = Array.from({ length: particleCount }, () => ({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
-      size: Math.random() * 3 + 1,
+      size: Math.random() * 6 + 2,
       speedX: (Math.random() - 0.5) * 0.5,
       speedY: (Math.random() - 0.5) * 0.5,
-      opacity: Math.random() * 0.6 + 0.4,
+      opacity: Math.random() * 0.8 + 0.6,
       color: colors[Math.floor(Math.random() * colors.length)],
     }));
 
