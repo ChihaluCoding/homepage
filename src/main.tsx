@@ -56,7 +56,7 @@ function HomePage() {
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
               className="relative"
             >
-              <div className="relative w-72 h-96 lg:w-80 lg:h-[450px]">
+              <div className="relative w-80 h-[420px] lg:w-[420px] lg:h-[560px]">
                 <div className="absolute inset-0 bg-gradient-to-t from-cyan-200/40 via-transparent to-transparent rounded-full blur-2xl scale-110" />
                 
                 <motion.img
