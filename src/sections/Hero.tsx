@@ -3,10 +3,14 @@
 import { motion } from "framer-motion";
 import { Sparkles, Youtube, Twitter, Github } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ParticlesBackground } from "@/components/ParticlesBackground";
 
 export function Hero() {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-b from-cyan-50/50 via-white to-white">
+      {/* Particles Background */}
+      <ParticlesBackground />
+
       {/* Background Effects */}
       <div className="absolute inset-0">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-200/30 rounded-full blur-3xl" />
@@ -98,7 +102,7 @@ export function Hero() {
               className="text-4xl lg:text-6xl font-bold mb-6"
             >
               <span className="text-slate-700">Chihalu</span>
-              <span className="text-gradient">Studio</span>
+              <span className="text-gradient">　Studio</span>
             </motion.h1>
 
             <motion.p
@@ -120,18 +124,19 @@ export function Hero() {
             >
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-cyan-400 to-sky-500 hover:from-cyan-500 hover:to-sky-600 text-white font-semibold px-8 glow-cyan transition-all duration-300 hover:glow-cyan-strong shadow-lg shadow-cyan-200"
-              >
-                <Youtube className="w-5 h-5 mr-2" />
-                YouTube
-              </Button>
-              <Button
-                size="lg"
                 variant="outline"
                 className="border-cyan-300 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-400"
               >
                 <Twitter className="w-5 h-5 mr-2" />
                 Twitter
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-slate-300 text-slate-600 hover:bg-slate-50 hover:border-slate-400"
+              >
+                <Github className="w-5 h-5 mr-2" />
+                GitHub
               </Button>
             </motion.div>
 
