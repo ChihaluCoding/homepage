@@ -107,7 +107,7 @@ function HomePage() {
               transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
               className="w-full max-w-xl"
             >
-              <div className="relative overflow-hidden rounded-[28px] border border-cyan-100/80 bg-white/75 backdrop-blur-xl p-8 lg:p-10 text-center lg:text-left shadow-[0_25px_70px_-35px_rgba(14,165,233,0.65)]">
+              <div className="relative overflow-hidden rounded-[28px] border border-cyan-100/80 bg-white/75 backdrop-blur-xl p-8 lg:p-10 text-center lg:text-left">
                 <div className="pointer-events-none absolute -top-16 -right-12 h-40 w-40 rounded-full bg-cyan-200/40 blur-3xl" />
                 <div className="pointer-events-none absolute -bottom-14 -left-10 h-36 w-36 rounded-full bg-rose-200/30 blur-3xl" />
 
@@ -115,7 +115,7 @@ function HomePage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
-                  className="relative inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-100 to-sky-100 border border-cyan-200/80 mb-6 shadow-sm"
+                  className="relative inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-100 to-sky-100 border border-cyan-200/80 mb-6"
                 >
                   <Sparkles className="w-4 h-4 text-cyan-500" />
                   <span className="text-sm text-cyan-700 font-semibold tracking-wide">Welcome to my page!</span>
@@ -151,7 +151,7 @@ function HomePage() {
                   <a href={`${baseUrl}about/`}>
                     <Button
                       size="lg"
-                      className="rounded-xl bg-gradient-to-r from-cyan-500 to-sky-500 text-white shadow-lg shadow-cyan-200 hover:from-cyan-600 hover:to-sky-600"
+                      className="rounded-xl bg-gradient-to-r from-cyan-500 to-sky-500 text-white hover:from-cyan-600 hover:to-sky-600"
                     >
                       プロフィール
                       <ChevronRight className="w-5 h-5 ml-1" />
@@ -184,7 +184,7 @@ function HomePage() {
                       href={social.href}
                       whileHover={{ scale: 1.08 }}
                       whileTap={{ scale: 0.95 }}
-                      className={`group w-12 h-12 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur flex items-center justify-center text-slate-400 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${social.accent}`}
+                      className={`group w-12 h-12 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur flex items-center justify-center text-slate-400 transition-all duration-300 hover:-translate-y-1 ${social.accent}`}
                     >
                       <social.icon className="w-5 h-5" />
                     </motion.a>
@@ -204,7 +204,7 @@ function HomePage() {
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            <Card className="bg-white border-cyan-100 shadow-lg shadow-cyan-50 overflow-hidden rounded-2xl">
+            <Card className="bg-white border-cyan-100 overflow-hidden rounded-2xl">
               <CardContent className="p-8">
                 <div className="flex items-center gap-6 mb-6">
                   <div className="relative">
@@ -248,7 +248,7 @@ function HomePage() {
                       href={link.href}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r ${link.color} text-white text-sm font-medium shadow-md`}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r ${link.color} text-white text-sm font-medium`}
                     >
                       <link.icon className="w-5 h-5" />
                       {link.name}
@@ -287,9 +287,9 @@ function HomePage() {
                 transition={{ delay: index * 0.1 }}
               >
                 <a href={feature.href}>
-                  <Card className="group bg-white border-slate-200 hover:border-cyan-300 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-100 cursor-pointer h-full">
+                  <Card className="group bg-white border-slate-200 hover:border-cyan-300 transition-all duration-300 cursor-pointer h-full">
                     <CardContent className="p-8 text-center">
-                      <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-transform`}>
+                      <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform`}>
                         <feature.icon className="w-8 h-8 text-white" />
                       </div>
                       <h3 className="text-xl font-bold text-slate-700 mb-2 group-hover:text-cyan-600 transition-colors">
