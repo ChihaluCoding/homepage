@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Package, User, Home, Youtube } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import siteIcon from "../../icon.png";
 
 const baseUrl = import.meta.env.BASE_URL || "/";

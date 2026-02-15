@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import ReactDOM from 'react-dom/client'
-import { motion, AnimatePresence } from "framer-motion";
-import { Package, ExternalLink, Play, X, ChevronLeft, Gamepad2, Wrench, ArrowUpDown } from "lucide-react";
+import { motion } from "framer-motion";
+import { Package, ExternalLink, Play, ChevronLeft, Gamepad2, Wrench, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -99,6 +99,8 @@ const games = [
     screenshots: ["🏰", "⚔️", "🛡️"],
   },
 ];
+
+type GameWork = typeof games[number];
 
 type ToolLikeWork = {
   id: number;
@@ -458,14 +460,14 @@ function WorksPage() {
   const [gameSort, setGameSort] = useState<SortType>('default');
   const [assetSort, setAssetSort] = useState<SortType>('default');
 
-  const sortGames = (games: typeof games) => {
+  const sortGames = (items: GameWork[]) => {
     switch (gameSort) {
       case 'price-asc':
-        return [...games].sort((a, b) => a.price - b.price);
+        return [...items].sort((a, b) => a.price - b.price);
       case 'price-desc':
-        return [...games].sort((a, b) => b.price - a.price);
+        return [...items].sort((a, b) => b.price - a.price);
       default:
-        return games;
+        return items;
     }
   };
 
