@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import { motion } from "framer-motion";
-import { BookOpen, ChevronLeft, ChevronRight } from "lucide-react";
+import { BookOpen, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Navigation } from "@/components/Navigation";
 import { ParticlesBackground } from "@/components/ParticlesBackground";
@@ -451,13 +451,23 @@ function RecordsPage() {
       </Dialog>
 
       <Dialog open={Boolean(selectedImagePreview)} onOpenChange={(open) => !open && setSelectedImagePreview(null)}>
-        <DialogContent className="max-w-[98vw] max-h-[96vh] bg-white p-3">
+        <DialogContent
+          showCloseButton={false}
+          className="w-fit max-w-[98vw] border-0 bg-transparent p-0 shadow-none"
+        >
           {selectedImagePreview && (
-            <img
-              src={selectedImagePreview.src}
-              alt={selectedImagePreview.alt}
-              className="w-auto h-auto max-w-[95vw] max-h-[90vh] object-contain mx-auto rounded-md"
-            />
+            <div className="relative">
+              <DialogClose className="absolute -top-11 right-0 rounded-md bg-white/90 border border-slate-200 p-1.5 text-slate-600 hover:bg-white">
+                <X className="w-5 h-5" />
+                <span className="sr-only">Close</span>
+              </DialogClose>
+
+              <img
+                src={selectedImagePreview.src}
+                alt={selectedImagePreview.alt}
+                className="block w-auto h-auto max-w-[96vw] max-h-[92vh] object-contain rounded-md"
+              />
+            </div>
           )}
         </DialogContent>
       </Dialog>
