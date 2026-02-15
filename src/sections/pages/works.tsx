@@ -505,7 +505,7 @@ function WorksPage() {
 
             <h1 className="text-3xl lg:text-5xl font-bold mb-4">
               <span className="text-slate-700">BOOTH</span>
-              <span className="text-gradient">SHOP</span>
+              <span className="text-gradient ml-2">SHOP</span>
             </h1>
             <p className="text-slate-500 text-lg max-w-2xl mx-auto">
               制作したゲームやツールをBOOTHにて販売しています。
