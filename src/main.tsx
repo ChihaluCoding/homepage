@@ -53,20 +53,20 @@ function HomePage() {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-white">
+      <section className="relative min-h-[95vh] flex items-center justify-center overflow-hidden bg-white">
         <div className="absolute inset-0 z-0">
           <ParticlesBackground />
         </div>
 
-        <div className="relative z-10 container mx-auto px-4 py-20">
-          <div className="flex flex-col lg:flex-row items-center justify-center gap-12 lg:gap-20">
+        <div className="relative z-10 container mx-auto px-4 py-20 lg:py-24">
+          <div className="flex flex-col lg:flex-row items-center justify-center gap-14 lg:gap-24">
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
               className="relative"
             >
-              <div className="relative w-80 h-[420px] lg:w-[420px] lg:h-[560px]">
+              <div className="relative w-[22rem] h-[30rem] lg:w-[30rem] lg:h-[42rem]">
                 <img
                   src={`${baseUrl}character.png`}
                   alt="Character"
@@ -98,9 +98,9 @@ function HomePage() {
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="w-full max-w-xl"
+              className="w-full max-w-2xl"
             >
-              <div className="relative overflow-hidden rounded-[28px] border border-cyan-100/80 bg-white p-8 lg:p-10 text-center lg:text-left">
+              <div className="relative overflow-hidden rounded-[28px] border border-cyan-100/80 bg-white p-9 lg:p-12 text-center lg:text-left">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -115,7 +115,7 @@ function HomePage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
-                  className="relative text-5xl lg:text-6xl font-black mb-5 tracking-tight"
+                  className="relative text-6xl lg:text-7xl font-black mb-6 tracking-tight"
                 >
                   <span className="text-slate-700">Chihalu</span>
                   <span className="bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-500 bg-clip-text text-transparent ml-1">
@@ -127,7 +127,7 @@ function HomePage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
-                  className="relative text-lg text-slate-500 mb-8 leading-relaxed"
+                  className="relative text-xl text-slate-500 mb-9 leading-relaxed"
                 >
                   自作ゲーム・ツール等の販売や活動記録を残しています。
                 </motion.p>
