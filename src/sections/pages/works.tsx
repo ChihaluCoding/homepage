@@ -321,6 +321,14 @@ function WorkDetailDialog({
   );
 }
 
+function EmptyProductsState() {
+  return (
+    <div className="flex min-h-[260px] items-center justify-center rounded-2xl border border-dashed border-cyan-200 bg-white/70 text-slate-500">
+      商品がありません
+    </div>
+  );
+}
+
 function WorksPage() {
   const baseUrl = import.meta.env.BASE_URL || "/";
   const [worksData, setWorksData] = useState<WorksData>(EMPTY_DATA);
@@ -408,71 +416,78 @@ function WorksPage() {
   );
 
   const renderToolLikeGrid = (items: ToolLikeWork[], onSelect: (item: ToolLikeWork) => void) => (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-    >
-      {sortToolLikeWorks(items).map((item) => (
-        <motion.div key={item.id} variants={itemVariants}>
-          <Card
-            className="group bg-white border-slate-200 hover:border-cyan-300 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-100 h-full flex flex-col cursor-pointer"
-            onClick={() => onSelect(item)}
-          >
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between mb-3">
-                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center text-3xl shadow-lg`}>
-                  {item.icon}
-                </div>
-                <div className="flex flex-col items-end gap-2">
-                  {item.isNew && (
-                    <Badge className="bg-cyan-500 text-white">
-                      NEW
-                    </Badge>
-                  )}
-                  <Badge variant="outline" className="border-slate-200 text-slate-500">
-                    {item.category}
-                  </Badge>
-                </div>
-              </div>
-              <CardTitle className="text-xl text-slate-700 group-hover:text-cyan-600 transition-colors">
-                {item.title}
-              </CardTitle>
-              <CardDescription className="text-slate-500">{item.description}</CardDescription>
-            </CardHeader>
+    (() => {
+      const sortedItems = sortToolLikeWorks(items);
+      if (sortedItems.length === 0) return <EmptyProductsState />;
 
-            <CardContent className="pb-3 flex-grow">
-              <div className="space-y-2">
-                {item.features.slice(0, 3).map((feature) => (
-                  <div key={feature} className="flex items-center gap-2 text-sm text-slate-500">
-                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-500" />
-                    {feature}
+      return (
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
+          {sortedItems.map((item) => (
+            <motion.div key={item.id} variants={itemVariants}>
+              <Card
+                className="group bg-white border-slate-200 hover:border-cyan-300 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-100 h-full flex flex-col cursor-pointer"
+                onClick={() => onSelect(item)}
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center text-3xl shadow-lg`}>
+                      {item.icon}
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      {item.isNew && (
+                        <Badge className="bg-cyan-500 text-white">
+                          NEW
+                        </Badge>
+                      )}
+                      <Badge variant="outline" className="border-slate-200 text-slate-500">
+                        {item.category}
+                      </Badge>
+                    </div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
+                  <CardTitle className="text-xl text-slate-700 group-hover:text-cyan-600 transition-colors">
+                    {item.title}
+                  </CardTitle>
+                  <CardDescription className="text-slate-500">{item.description}</CardDescription>
+                </CardHeader>
 
-            <CardFooter className="flex items-center justify-between pt-3 border-t border-slate-100 mt-auto">
-              <span className="text-sm font-bold text-cyan-600">
-                {item.price === 0 ? "無料" : `¥${item.price.toLocaleString()}`}
-              </span>
-              <Button size="sm" className="bg-cyan-100 text-cyan-600 hover:bg-cyan-500 hover:text-white transition-all">
-                <ExternalLink className="w-4 h-4 mr-1" />
-                詳細
-              </Button>
-            </CardFooter>
-          </Card>
+                <CardContent className="pb-3 flex-grow">
+                  <div className="space-y-2">
+                    {item.features.slice(0, 3).map((feature) => (
+                      <div key={feature} className="flex items-center gap-2 text-sm text-slate-500">
+                        <span className="w-1.5 h-1.5 rounded-full bg-cyan-500" />
+                        {feature}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+
+                <CardFooter className="flex items-center justify-between pt-3 border-t border-slate-100 mt-auto">
+                  <span className="text-sm font-bold text-cyan-600">
+                    {item.price === 0 ? "無料" : `¥${item.price.toLocaleString()}`}
+                  </span>
+                  <Button size="sm" className="bg-cyan-100 text-cyan-600 hover:bg-cyan-500 hover:text-white transition-all">
+                    <ExternalLink className="w-4 h-4 mr-1" />
+                    詳細
+                  </Button>
+                </CardFooter>
+              </Card>
+            </motion.div>
+          ))}
         </motion.div>
-      ))}
-    </motion.div>
+      );
+    })()
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navigation />
 
-      <section className="py-24 relative overflow-hidden bg-gradient-to-b from-white via-cyan-50/30 to-white">
+      <section className="py-24 relative overflow-hidden bg-gradient-to-b from-white via-cyan-50/30 to-white flex-1">
         <ParticlesBackground />
 
         <div className="absolute inset-0">
@@ -539,106 +554,112 @@ function WorksPage() {
               </TabsList>
 
               <TabsContent value="games">
-                <div className="flex justify-end mb-4">
-                  <div className="flex gap-2">
-                    <Button
-                      variant={gameSort === 'price-asc' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setGameSort(gameSort === 'price-asc' ? 'default' : 'price-asc')}
-                      className={gameSort === 'price-asc' ? 'bg-cyan-500 hover:bg-cyan-600' : ''}
+                {worksData.games.length === 0 ? (
+                  <EmptyProductsState />
+                ) : (
+                  <>
+                    <div className="flex justify-end mb-4">
+                      <div className="flex gap-2">
+                        <Button
+                          variant={gameSort === 'price-asc' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setGameSort(gameSort === 'price-asc' ? 'default' : 'price-asc')}
+                          className={gameSort === 'price-asc' ? 'bg-cyan-500 hover:bg-cyan-600' : ''}
+                        >
+                          <ArrowUpDown className="w-4 h-4 mr-1" />
+                          安い順
+                        </Button>
+                        <Button
+                          variant={gameSort === 'price-desc' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setGameSort(gameSort === 'price-desc' ? 'default' : 'price-desc')}
+                          className={gameSort === 'price-desc' ? 'bg-cyan-500 hover:bg-cyan-600' : ''}
+                        >
+                          <ArrowUpDown className="w-4 h-4 mr-1" />
+                          高い順
+                        </Button>
+                      </div>
+                    </div>
+                    <motion.div
+                      variants={containerVariants}
+                      initial="hidden"
+                      animate="visible"
+                      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                     >
-                      <ArrowUpDown className="w-4 h-4 mr-1" />
-                      安い順
-                    </Button>
-                    <Button
-                      variant={gameSort === 'price-desc' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setGameSort(gameSort === 'price-desc' ? 'default' : 'price-desc')}
-                      className={gameSort === 'price-desc' ? 'bg-cyan-500 hover:bg-cyan-600' : ''}
-                    >
-                      <ArrowUpDown className="w-4 h-4 mr-1" />
-                      高い順
-                    </Button>
-                  </div>
-                </div>
-                <motion.div
-                  variants={containerVariants}
-                  initial="hidden"
-                  animate="visible"
-                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-                >
-                  {sortGames(worksData.games).map((game) => (
-                    <motion.div key={game.id} variants={itemVariants}>
-                      <Card
-                        className="group bg-white border-slate-200 hover:border-cyan-300 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-100 overflow-hidden cursor-pointer h-full flex flex-col"
-                        onClick={() => setSelectedGame(game)}
-                      >
-                        <div className={`h-40 bg-gradient-to-br ${game.color} relative overflow-hidden`}>
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="text-6xl">{game.image}</span>
-                          </div>
-                          <div className="absolute inset-0 bg-black/10" />
-                          <div className="absolute top-3 right-3">
-                            <Badge variant="secondary" className="bg-white/80 text-slate-700 backdrop-blur-sm">
-                              {game.category}
-                            </Badge>
-                          </div>
-                          {game.trailerUrls.length > 0 && (
-                            <div className="absolute bottom-3 left-3">
-                              <Badge className="bg-red-500/90 text-white backdrop-blur-sm">
-                                <Play className="w-3 h-3 mr-1" />
-                                動画あり
-                              </Badge>
+                      {sortGames(worksData.games).map((game) => (
+                        <motion.div key={game.id} variants={itemVariants}>
+                          <Card
+                            className="group bg-white border-slate-200 hover:border-cyan-300 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-100 overflow-hidden cursor-pointer h-full flex flex-col"
+                            onClick={() => setSelectedGame(game)}
+                          >
+                            <div className={`h-40 bg-gradient-to-br ${game.color} relative overflow-hidden`}>
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <span className="text-6xl">{game.image}</span>
+                              </div>
+                              <div className="absolute inset-0 bg-black/10" />
+                              <div className="absolute top-3 right-3">
+                                <Badge variant="secondary" className="bg-white/80 text-slate-700 backdrop-blur-sm">
+                                  {game.category}
+                                </Badge>
+                              </div>
+                              {game.trailerUrls.length > 0 && (
+                                <div className="absolute bottom-3 left-3">
+                                  <Badge className="bg-red-500/90 text-white backdrop-blur-sm">
+                                    <Play className="w-3 h-3 mr-1" />
+                                    動画あり
+                                  </Badge>
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
 
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-xl text-slate-700 group-hover:text-cyan-600 transition-colors">
-                            {game.title}
-                          </CardTitle>
-                          <CardDescription className="line-clamp-2 text-slate-500">
-                            {game.description}
-                          </CardDescription>
-                        </CardHeader>
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-xl text-slate-700 group-hover:text-cyan-600 transition-colors">
+                                {game.title}
+                              </CardTitle>
+                              <CardDescription className="line-clamp-2 text-slate-500">
+                                {game.description}
+                              </CardDescription>
+                            </CardHeader>
 
-                        <CardContent className="pb-3 flex-grow">
-                          <div className="flex flex-wrap gap-2">
-                            {game.tags.slice(0, 3).map((tag) => (
-                              <Badge key={tag} variant="outline" className="text-xs border-cyan-200 text-cyan-600">
-                                {tag}
-                              </Badge>
-                            ))}
-                          </div>
-                        </CardContent>
+                            <CardContent className="pb-3 flex-grow">
+                              <div className="flex flex-wrap gap-2">
+                                {game.tags.slice(0, 3).map((tag) => (
+                                  <Badge key={tag} variant="outline" className="text-xs border-cyan-200 text-cyan-600">
+                                    {tag}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </CardContent>
 
-                        <CardFooter className="flex items-center justify-between pt-3 border-t border-slate-100 mt-auto">
-                          <span className="text-sm font-bold text-cyan-600">
-                            {game.price === 0 ? "無料" : `¥${game.price.toLocaleString()}`}
-                          </span>
-                          <Button size="sm" className="bg-cyan-100 text-cyan-600 hover:bg-cyan-500 hover:text-white transition-all">
-                            <ExternalLink className="w-4 h-4 mr-1" />
-                            詳細
-                          </Button>
-                        </CardFooter>
-                      </Card>
+                            <CardFooter className="flex items-center justify-between pt-3 border-t border-slate-100 mt-auto">
+                              <span className="text-sm font-bold text-cyan-600">
+                                {game.price === 0 ? "無料" : `¥${game.price.toLocaleString()}`}
+                              </span>
+                              <Button size="sm" className="bg-cyan-100 text-cyan-600 hover:bg-cyan-500 hover:text-white transition-all">
+                                <ExternalLink className="w-4 h-4 mr-1" />
+                                詳細
+                              </Button>
+                            </CardFooter>
+                          </Card>
+                        </motion.div>
+                      ))}
                     </motion.div>
-                  ))}
-                </motion.div>
+                  </>
+                )}
               </TabsContent>
 
               <TabsContent value="tools">
-                {renderAssetSortButtons()}
+                {worksData.tools.length > 0 && renderAssetSortButtons()}
                 {renderToolLikeGrid(worksData.tools, setSelectedTool)}
               </TabsContent>
 
               <TabsContent value="model-assets">
-                {renderAssetSortButtons()}
+                {worksData.modelAssets.length > 0 && renderAssetSortButtons()}
                 {renderToolLikeGrid(worksData.modelAssets, setSelectedModelAsset)}
               </TabsContent>
 
               <TabsContent value="blender-addons">
-                {renderAssetSortButtons()}
+                {worksData.blenderAddons.length > 0 && renderAssetSortButtons()}
                 {renderToolLikeGrid(worksData.blenderAddons, setSelectedBlenderAddon)}
               </TabsContent>
             </Tabs>
