@@ -1,8 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { motion } from "framer-motion";
-import { BookOpen, CalendarDays, ChevronLeft, Rocket, Target, TrendingUp } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { BookOpen, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Navigation } from "@/components/Navigation";
@@ -10,51 +9,44 @@ import { ParticlesBackground } from "@/components/ParticlesBackground";
 import { Footer } from "@/sections/Footer";
 import "@/index.css";
 
-const milestones = [
+const growthRecords = [
   {
     id: 1,
-    date: "2026-02-01",
-    title: "ポートフォリオ再設計",
-    description: "トップページの構成を見直し、導線とデザインの統一感を改善しました。",
-    tag: "Website",
-    status: "done",
+    title: "ポートフォリオUI更新",
+    description: "ヒーロー・ナビゲーション・配色を調整し、見た目の一貫性を改善。",
+    image: "character.png",
   },
   {
     id: 2,
-    date: "2026-01-20",
-    title: "3Dアセット制作開始",
-    description: "Blenderで配布向け3Dモデルの量産フローを構築しました。",
-    tag: "3D",
-    status: "done",
+    title: "3Dアセット制作",
+    description: "Blenderで配布用アセットの制作フローを整備し、試作品を作成。",
+    image: "avatar.png",
   },
   {
     id: 3,
-    date: "2025-12-30",
-    title: "YouTube投稿ペース改善",
-    description: "月1本から月2本に更新頻度を引き上げる運用を開始しました。",
-    tag: "YouTube",
-    status: "done",
+    title: "YouTube運用改善",
+    description: "投稿計画を再編して、制作ログと解説動画の更新頻度を見直し。",
+    image: "icon.png",
   },
   {
     id: 4,
-    date: "2025-12-01",
-    title: "新作ゲームのプロトタイプ完成",
-    description: "コアシステムとUIの試作が完了し、テスト配布を準備中です。",
-    tag: "Game",
-    status: "in-progress",
+    title: "ゲーム試作v1完成",
+    description: "コア部分を実装し、テストプレイ可能な最小構成を完成。",
+    image: "character.png",
+  },
+  {
+    id: 5,
+    title: "ツール機能追加",
+    description: "既存ツールへ新機能を追加し、使い勝手と安定性を改善。",
+    image: "avatar.png",
+  },
+  {
+    id: 6,
+    title: "サイト導線最適化",
+    description: "各ページのリンク構成を整理し、情報へ到達しやすい構造に調整。",
+    image: "icon.png",
   },
 ];
-
-const goals = [
-  { title: "年間公開作品", value: "12", note: "ゲーム / ツール / アセット" },
-  { title: "YouTube投稿本数", value: "24", note: "月2本ペース" },
-  { title: "学習時間", value: "500h", note: "Blender / Unity / React" },
-];
-
-function formatDate(dateString: string) {
-  const date = new Date(dateString);
-  return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
-}
 
 function RecordsPage() {
   const baseUrl = import.meta.env.BASE_URL || "/";
@@ -99,63 +91,28 @@ function RecordsPage() {
               <span className="text-gradient">記録</span>
             </h1>
             <p className="text-slate-500 text-lg max-w-2xl mx-auto">
-              制作活動の進捗と学習のログを時系列でまとめています。
+              制作活動の進捗をカード形式でまとめています。
             </p>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10"
-          >
-            {goals.map((goal) => (
-              <Card key={goal.title} className="bg-white border-slate-200">
-                <CardContent className="p-5">
-                  <div className="flex items-center gap-2 mb-2 text-cyan-600">
-                    <Target className="w-4 h-4" />
-                    <span className="text-sm font-medium">{goal.title}</span>
-                  </div>
-                  <div className="text-3xl font-bold text-slate-700">{goal.value}</div>
-                  <p className="text-sm text-slate-500 mt-1">{goal.note}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </motion.div>
-
-          <div className="space-y-4">
-            {milestones.map((item, index) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {growthRecords.map((item, index) => (
               <motion.div
                 key={item.id}
-                initial={{ opacity: 0, y: 24 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 + index * 0.08 }}
+                transition={{ delay: 0.08 + index * 0.05 }}
               >
-                <Card className="bg-white border-slate-200 hover:border-cyan-200 transition-colors">
-                  <CardContent className="p-6">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-3">
-                      <div className="flex items-center gap-2 text-slate-500 text-sm">
-                        <CalendarDays className="w-4 h-4 text-cyan-500" />
-                        <span>{formatDate(item.date)}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="border-cyan-200 text-cyan-700">
-                          {item.tag}
-                        </Badge>
-                        {item.status === "done" ? (
-                          <Badge className="bg-emerald-500 text-white">
-                            <TrendingUp className="w-3 h-3 mr-1" />
-                            完了
-                          </Badge>
-                        ) : (
-                          <Badge className="bg-amber-500 text-white">
-                            <Rocket className="w-3 h-3 mr-1" />
-                            進行中
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                    <h3 className="text-xl font-bold text-slate-700 mb-2">{item.title}</h3>
+                <Card className="group bg-white border-cyan-100 overflow-hidden h-full">
+                  <div className="aspect-[4/3] border-b border-cyan-100 bg-slate-50 overflow-hidden">
+                    <img
+                      src={`${baseUrl}${item.image}`}
+                      alt={item.title}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  </div>
+                  <CardContent className="p-5">
+                    <h3 className="text-lg font-bold text-slate-700 mb-2">{item.title}</h3>
                     <p className="text-slate-500 leading-relaxed">{item.description}</p>
                   </CardContent>
                 </Card>
