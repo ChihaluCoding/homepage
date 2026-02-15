@@ -9,23 +9,13 @@ import { Card, CardContent } from "@/components/ui/card";
 const youtubeChannels = [
   {
     id: 1,
-    name: "Chihalu Game Dev",
-    description: "ゲーム開発の過程や技術解説を発信しています",
-    subscribers: "1.2K",
-    videos: 45,
-    url: "#",
-    thumbnail: "🎮",
+    name: "ちはる21",
+    description: "@ちはる21",
+    subscribers: "-",
+    videos: 0,
+    url: "https://www.youtube.com/@%E3%81%A1%E3%81%AF%E3%82%8B21",
+    thumbnail: "🎬",
     color: "from-red-500 to-rose-500",
-  },
-  {
-    id: 2,
-    name: "Chihalu Vlog",
-    description: "日常や制作の裏側をお届けします",
-    subscribers: "850",
-    videos: 28,
-    url: "#",
-    thumbnail: "📹",
-    color: "from-cyan-500 to-sky-500",
   },
 ];
 
@@ -106,12 +96,11 @@ export function YouTube() {
           </motion.div>
 
           <h2 className="text-3xl lg:text-5xl font-bold mb-4">
-            <span className="text-slate-700">おすすめ</span>
+            <span className="text-slate-700">自分の</span>
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-rose-500">チャンネル</span>
           </h2>
           <p className="text-slate-500 text-lg max-w-2xl mx-auto">
-            私が運営しているYouTubeチャンネルや、
-            おすすめのクリエイターチャンネルを紹介します。
+            私が運営しているYouTubeチャンネルを紹介します。
           </p>
         </motion.div>
 
@@ -156,23 +145,25 @@ export function YouTube() {
                         <div className="flex items-center gap-4 text-sm text-slate-400">
                           <span className="flex items-center gap-1">
                             <Eye className="w-4 h-4" />
-                            {channel.subscribers} 登録者
+                            {channel.subscribers === "-" ? "登録者 -" : `${channel.subscribers} 登録者`}
                           </span>
                           <span className="flex items-center gap-1">
                             <Play className="w-4 h-4" />
-                            {channel.videos} 本の動画
+                            {channel.videos > 0 ? `${channel.videos} 本の動画` : "動画数 -"}
                           </span>
                         </div>
                       </div>
                     </div>
                     <div className="mt-4 pt-4 border-t border-slate-100">
-                      <Button
-                        size="sm"
-                        className="w-full bg-red-500 hover:bg-red-600 text-white"
-                      >
-                        <ExternalLink className="w-4 h-4 mr-2" />
-                        チャンネルを見る
-                      </Button>
+                      <a href={channel.url} target="_blank" rel="noopener noreferrer">
+                        <Button
+                          size="sm"
+                          className="w-full bg-red-500 hover:bg-red-600 text-white"
+                        >
+                          <ExternalLink className="w-4 h-4 mr-2" />
+                          チャンネルを見る
+                        </Button>
+                      </a>
                     </div>
                   </CardContent>
                 </Card>

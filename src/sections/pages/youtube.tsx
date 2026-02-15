@@ -13,33 +13,13 @@ import "@/index.css";
 const favoriteChannels = [
   {
     id: 1,
-    name: "Mina Audrey",
-    description: "@MinaAudrey",
+    name: "ちはる21",
+    description: "@ちはる21",
     subscribers: "-",
     videos: 0,
-    url: "https://www.youtube.com/@MinaAudrey",
-    thumbnail: "🎤",
+    url: "https://www.youtube.com/@%E3%81%A1%E3%81%AF%E3%82%8B21",
+    thumbnail: "🎬",
     color: "from-red-500 to-rose-500",
-  },
-  {
-    id: 2,
-    name: "ジャルジャルアイランド",
-    description: "@jarujaruisland8111",
-    subscribers: "-",
-    videos: 0,
-    url: "https://www.youtube.com/@jarujaruisland8111",
-    thumbnail: "🤣",
-    color: "from-cyan-500 to-sky-500",
-  },
-  {
-    id: 3,
-    name: "ジャルジャルタワー",
-    description: "@jarujarutower365",
-    subscribers: "-",
-    videos: 0,
-    url: "https://www.youtube.com/@jarujarutower365",
-    thumbnail: "🏙️",
-    color: "from-purple-500 to-pink-500",
   },
 ];
 
@@ -129,12 +109,12 @@ function YouTubePage() {
             </div>
 
             <h1 className="text-3xl lg:text-5xl font-bold mb-4">
-              <span className="text-slate-700">おすすめ</span>
+              <span className="text-slate-700">自分の</span>
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-rose-500">チャンネル</span>
             </h1>
             <p className="text-slate-500 text-lg max-w-2xl mx-auto">
-              いつも楽しく見させていただいている、
-              おすすめのYouTubeチャンネルを紹介します。
+              自分が運営しているYouTubeチャンネルです。
+              よければ見に来てください。
             </p>
           </motion.div>
 
@@ -145,7 +125,7 @@ function YouTubePage() {
           >
             <h2 className="text-xl font-bold text-slate-700 mb-6 flex items-center gap-2">
               <Play className="w-5 h-5 text-red-500" />
-              いつも見ているチャンネル
+              自分のチャンネル
             </h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
