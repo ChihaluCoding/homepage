@@ -456,18 +456,18 @@ function RecordsPage() {
           className="w-[96vw] h-[92vh] max-w-none border-0 bg-transparent p-0 shadow-none overflow-hidden"
         >
           {selectedImagePreview && (
-            <div className="relative w-full h-full">
-              <DialogClose className="absolute top-3 right-3 z-10 rounded-md bg-white/90 border border-slate-200 p-1.5 text-slate-600 hover:bg-white">
-                <X className="w-5 h-5" />
-                <span className="sr-only">Close</span>
-              </DialogClose>
-
-              <div className="w-full h-full flex items-center justify-center">
+            <div className="w-full h-full flex items-center justify-center">
+              <div className="relative inline-block max-w-full max-h-full">
                 <img
                   src={selectedImagePreview.src}
                   alt={selectedImagePreview.alt}
-                  className="block w-auto h-auto max-w-full max-h-full object-contain rounded-md"
+                  className="block w-auto h-auto max-w-[95vw] max-h-[90vh] object-contain rounded-md"
                 />
+
+                <DialogClose className="absolute top-2 right-2 z-10 rounded-md bg-white/90 border border-slate-200 p-1.5 text-slate-600 hover:bg-white">
+                  <X className="w-5 h-5" />
+                  <span className="sr-only">Close</span>
+                </DialogClose>
               </div>
             </div>
           )}
