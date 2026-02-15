@@ -25,6 +25,7 @@ type GameWork = {
   boothUrl: string;
   trailerUrls: string[];
   screenshots: string[];
+  inDevelopment: boolean;
 };
 
 type ToolLikeWork = {
@@ -40,6 +41,7 @@ type ToolLikeWork = {
   trailerUrls: string[];
   screenshots: string[];
   isNew: boolean;
+  inDevelopment: boolean;
 };
 
 type WorksData = {
@@ -126,6 +128,7 @@ function normalizeGame(item: unknown): GameWork | null {
     boothUrl: toString(row.boothUrl, "https://booth.pm/"),
     trailerUrls: toTrailerUrls(row),
     screenshots: toStringArray(row.screenshots),
+    inDevelopment: toBoolean(row.inDevelopment),
   };
 }
 
@@ -148,6 +151,7 @@ function normalizeToolLike(item: unknown): ToolLikeWork | null {
     trailerUrls: toTrailerUrls(row),
     screenshots: toStringArray(row.screenshots),
     isNew: toBoolean(row.isNew),
+    inDevelopment: toBoolean(row.inDevelopment),
   };
 }
 
@@ -194,6 +198,10 @@ function WorkDetailDialog({
 
   const trailerUrls = work.trailerUrls ?? [];
   const screenshots = work.screenshots ?? [];
+  const isInDevelopment =
+    work.inDevelopment ||
+    work.title.includes("開発中") ||
+    work.description.includes("開発中");
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -246,7 +254,6 @@ function WorkDetailDialog({
               <span className="font-bold text-cyan-600 text-base">
                 {work.price === 0 ? "無料" : `¥${work.price.toLocaleString()}`}
               </span>
-              {'rating' in work && <span>評価: ★ {work.rating}</span>}
             </div>
           </TabsContent>
 
@@ -298,22 +305,33 @@ function WorkDetailDialog({
 
           <TabsContent value="download" className="space-y-4">
             <div className="bg-gradient-to-br from-cyan-50 to-sky-50 border border-cyan-200 rounded-lg p-6 text-center">
-              <h4 className="text-lg font-bold text-slate-700 mb-2">
-                {work.title} をダウンロード
-              </h4>
-              <p className="text-slate-500 mb-4">
-                BOOTHにて配布しています。下のボタンからダウンロードページへ移動できます。
-              </p>
-              <a href={work.boothUrl} target="_blank" rel="noopener noreferrer">
-                <Button size="lg" className="bg-gradient-to-r from-cyan-500 to-sky-500 hover:from-cyan-600 hover:to-sky-600 text-white">
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  BOOTHでダウンロード
-                </Button>
-              </a>
+              {isInDevelopment ? (
+                <>
+                  <h4 className="text-lg font-bold text-slate-700 mb-2">{work.title}</h4>
+                  <p className="text-slate-500">開発中です</p>
+                </>
+              ) : (
+                <>
+                  <h4 className="text-lg font-bold text-slate-700 mb-2">
+                    {work.title} をダウンロード
+                  </h4>
+                  <p className="text-slate-500 mb-4">
+                    BOOTHにて配布しています。下のボタンからダウンロードページへ移動できます。
+                  </p>
+                  <a href={work.boothUrl} target="_blank" rel="noopener noreferrer">
+                    <Button size="lg" className="bg-gradient-to-r from-cyan-500 to-sky-500 hover:from-cyan-600 hover:to-sky-600 text-white">
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      BOOTHでダウンロード
+                    </Button>
+                  </a>
+                </>
+              )}
             </div>
-            <p className="text-xs text-slate-400 text-center">
-              ※BOOTHのアカウントが必要な場合があります
-            </p>
+            {!isInDevelopment && (
+              <p className="text-xs text-slate-400 text-center">
+                ※BOOTHのアカウントが必要な場合があります
+              </p>
+            )}
           </TabsContent>
         </Tabs>
       </DialogContent>
