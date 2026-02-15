@@ -39,35 +39,35 @@ export function Navigation() {
         }`}
       >
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16 lg:h-20">
+          <div className="flex items-center justify-between h-20 lg:h-24">
             <motion.a
               href={baseUrl}
-              className="flex items-center gap-3"
+              className="flex items-center gap-4"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
               <img 
                 src={siteIcon} 
                 alt="Chihalu Studio" 
-                className="w-10 h-10 rounded-xl object-cover shadow-lg shadow-cyan-200"
+                className="w-12 h-12 lg:w-14 lg:h-14 rounded-xl object-cover shadow-lg shadow-cyan-200"
               />
-              <span className="font-bold text-lg hidden sm:block">
+              <span className="font-bold text-xl lg:text-2xl hidden sm:block">
                 <span className="text-slate-700">Chihalu</span>
                 <span className="text-cyan-500">Studio</span>
               </span>
             </motion.a>
 
-            <nav className="hidden lg:flex items-center gap-1">
+            <nav className="hidden lg:flex items-center gap-2">
               {navItems.map((item) => (
                 <motion.a
                   key={item.name}
                   href={item.href}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-500 hover:text-cyan-600 hover:bg-cyan-50 transition-colors"
+                  className="flex items-center gap-2 px-5 py-3 rounded-xl text-slate-500 hover:text-cyan-600 hover:bg-cyan-50 transition-colors"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <item.icon className="w-4 h-4" />
-                  <span className="text-sm font-medium">{item.name}</span>
+                  <item.icon className="w-5 h-5" />
+                  <span className="text-base font-medium">{item.name}</span>
                 </motion.a>
               ))}
             </nav>
@@ -77,9 +77,9 @@ export function Navigation() {
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 rounded-lg bg-cyan-100 text-cyan-600"
+              className="lg:hidden p-3 rounded-xl bg-cyan-100 text-cyan-600"
             >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {isMobileMenuOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
             </motion.button>
           </div>
         </div>
