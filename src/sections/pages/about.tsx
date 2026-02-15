@@ -1,9 +1,10 @@
-import React from 'react'
+import React, { useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import { motion } from "framer-motion";
 import { User, Heart, Code2, Coffee, Mail, Twitter, Github, Youtube, MapPin, Gamepad2, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Navigation } from "@/components/Navigation";
 import { ParticlesBackground } from "@/components/ParticlesBackground";
 import { Footer } from "@/sections/Footer";
@@ -32,6 +33,8 @@ const activities = [
 
 function AboutPage() {
   const baseUrl = import.meta.env.BASE_URL || "/";
+  const [isAvatarOpen, setIsAvatarOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -89,9 +92,14 @@ function AboutPage() {
                   <div className="flex items-center gap-6 mb-6">
                     <div className="relative">
                       <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-cyan-400 to-sky-500 p-1">
-                        <div className="w-full h-full rounded-xl bg-white flex items-center justify-center overflow-hidden">
+                        <button
+                          type="button"
+                          onClick={() => setIsAvatarOpen(true)}
+                          className="w-full h-full rounded-xl bg-white flex items-center justify-center overflow-hidden cursor-zoom-in"
+                          aria-label="アバターを拡大"
+                        >
                           <img src={`${baseUrl}avatar.png`} alt="Avatar" className="w-full h-full object-cover" />
-                        </div>
+                        </button>
                       </div>
                       <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-emerald-400 rounded-full border-4 border-white flex items-center justify-center">
                         <div className="w-2 h-2 bg-white rounded-full" />
@@ -240,6 +248,17 @@ function AboutPage() {
           </div>
         </div>
       </section>
+
+      <Dialog open={isAvatarOpen} onOpenChange={setIsAvatarOpen}>
+        <DialogContent className="w-fit max-w-[92vw] border-cyan-100 bg-white p-3">
+          <DialogTitle className="sr-only">Avatar Preview</DialogTitle>
+          <img
+            src={`${baseUrl}avatar.png`}
+            alt="Avatar enlarged"
+            className="max-h-[80vh] w-auto rounded-xl object-contain"
+          />
+        </DialogContent>
+      </Dialog>
 
       <Footer />
     </div>
