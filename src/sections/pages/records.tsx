@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom/client'
-import { motion } from "framer-motion";
-import { BookOpen, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { BookOpen, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Navigation } from "@/components/Navigation";
 import { ParticlesBackground } from "@/components/ParticlesBackground";
 import { Footer } from "@/sections/Footer";
@@ -20,8 +18,6 @@ type GrowthRecord = {
   images: string[];
   youtubeUrls: string[];
 };
-
-type MediaTab = "images" | "videos";
 
 function toText(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
@@ -117,13 +113,76 @@ function normalizeRecords(data: unknown): GrowthRecord[] {
     });
 }
 
+function RecordCardMedia({
+  images,
+  title,
+  baseUrl,
+  fallbackVideo,
+}: {
+  images: string[];
+  title: string;
+  baseUrl: string;
+  fallbackVideo: string | null;
+}) {
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  useEffect(() => {
+    setActiveImageIndex(0);
+
+    if (images.length <= 1) return;
+
+    const timerId = window.setInterval(() => {
+      setActiveImageIndex((prev) => (prev + 1) % images.length);
+    }, 3000);
+
+    return () => window.clearInterval(timerId);
+  }, [images]);
+
+  if (images.length > 0) {
+    const currentImage = images[activeImageIndex] ?? images[0];
+    const currentImageSrc = resolveImageSrc(baseUrl, currentImage);
+
+    return (
+      <div className="relative w-full h-full overflow-hidden">
+        <AnimatePresence mode="wait">
+          <motion.img
+            key={currentImageSrc}
+            src={currentImageSrc}
+            alt={title}
+            className="absolute inset-0 w-full h-full object-cover"
+            initial={{ opacity: 0.45 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0.45 }}
+            transition={{ duration: 0.35, ease: "easeInOut" }}
+          />
+        </AnimatePresence>
+      </div>
+    );
+  }
+
+  if (fallbackVideo) {
+    return (
+      <iframe
+        src={fallbackVideo}
+        title={title}
+        className="w-full h-full"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+      />
+    );
+  }
+
+  return (
+    <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm">
+      メディアなし
+    </div>
+  );
+}
+
 function RecordsPage() {
   const baseUrl = import.meta.env.BASE_URL || "/";
   const [records, setRecords] = useState<GrowthRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedRecord, setSelectedRecord] = useState<GrowthRecord | null>(null);
-  const [selectedImagePreview, setSelectedImagePreview] = useState<{ src: string; alt: string } | null>(null);
-  const [mediaTab, setMediaTab] = useState<MediaTab>("images");
   const [currentPage, setCurrentPage] = useState(() => {
     if (typeof window === "undefined") return 1;
     const pageParam = Number(new URLSearchParams(window.location.search).get("page") ?? "1");
@@ -188,23 +247,6 @@ function RecordsPage() {
     return Array.from({ length: end - adjustedStart + 1 }, (_, i) => adjustedStart + i);
   };
 
-  const openMediaDialog = (record: GrowthRecord, preferredTab?: MediaTab) => {
-    const hasImages = record.images.length > 0;
-    const hasVideos = record.youtubeUrls.some((url) => Boolean(toYouTubeEmbedUrl(url)));
-
-    if (!hasImages && !hasVideos) return;
-
-    if (preferredTab === "images" && hasImages) {
-      setMediaTab("images");
-    } else if (preferredTab === "videos" && hasVideos) {
-      setMediaTab("videos");
-    } else {
-      setMediaTab(hasImages ? "images" : "videos");
-    }
-
-    setSelectedRecord(record);
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -256,7 +298,6 @@ function RecordsPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {visibleRecords.map((item, index) => {
-                const primaryImage = item.images[0] ?? "";
                 const primaryVideo = item.youtubeUrls[0] ? toYouTubeEmbedUrl(item.youtubeUrls[0]) : null;
 
                 return (
@@ -266,58 +307,28 @@ function RecordsPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.08 + index * 0.05 }}
                   >
-                    <Card
-                      className="group bg-white border-cyan-100 overflow-hidden h-full cursor-pointer"
-                      onClick={() => openMediaDialog(item)}
-                    >
+                    <Card className="bg-white border-cyan-100 overflow-hidden h-full">
                       <div className="aspect-[4/3] border-b border-cyan-100 bg-slate-50 overflow-hidden">
-                        {primaryImage ? (
-                          <img
-                            src={resolveImageSrc(baseUrl, primaryImage)}
-                            alt={item.title}
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                          />
-                        ) : primaryVideo ? (
-                          <iframe
-                            src={primaryVideo}
-                            title={item.title}
-                            className="w-full h-full"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm">
-                            メディアなし
-                          </div>
-                        )}
+                        <RecordCardMedia
+                          images={item.images}
+                          title={item.title}
+                          baseUrl={baseUrl}
+                          fallbackVideo={primaryVideo}
+                        />
                       </div>
                       <CardContent className="p-5">
                         <h3 className="text-lg font-bold text-slate-700 mb-2">{item.title}</h3>
                         <p className="text-slate-500 leading-relaxed">{item.description}</p>
                         <div className="mt-3 flex flex-wrap gap-2">
                           {item.images.length > 0 && (
-                            <button
-                              type="button"
-                              className="px-2 py-1 rounded-md bg-cyan-50 border border-cyan-100 text-xs text-cyan-700 hover:bg-cyan-100"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                openMediaDialog(item, "images");
-                              }}
-                            >
+                            <span className="px-2 py-1 rounded-md bg-cyan-50 border border-cyan-100 text-xs text-cyan-700">
                               画像 {item.images.length}件
-                            </button>
+                            </span>
                           )}
                           {item.youtubeUrls.length > 0 && (
-                            <button
-                              type="button"
-                              className="px-2 py-1 rounded-md bg-red-50 border border-red-100 text-xs text-red-700 hover:bg-red-100"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                openMediaDialog(item, "videos");
-                              }}
-                            >
+                            <span className="px-2 py-1 rounded-md bg-red-50 border border-red-100 text-xs text-red-700">
                               動画 {item.youtubeUrls.length}件
-                            </button>
+                            </span>
                           )}
                         </div>
                       </CardContent>
@@ -365,112 +376,6 @@ function RecordsPage() {
           )}
         </div>
       </section>
-
-      <Dialog open={Boolean(selectedRecord)} onOpenChange={(open) => !open && setSelectedRecord(null)}>
-        <DialogContent className="max-w-[min(96vw,1400px)] max-h-[92vh] overflow-y-auto p-8">
-          {selectedRecord && (
-            <>
-              <DialogHeader>
-                <DialogTitle>{selectedRecord.title}</DialogTitle>
-                <DialogDescription>{selectedRecord.description}</DialogDescription>
-              </DialogHeader>
-
-              <Tabs value={mediaTab} onValueChange={(value) => setMediaTab(value as MediaTab)} className="mt-2">
-                <TabsList className="grid grid-cols-2 w-full sm:w-72">
-                  <TabsTrigger value="images" disabled={selectedRecord.images.length === 0}>
-                    画像 ({selectedRecord.images.length})
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="videos"
-                    disabled={selectedRecord.youtubeUrls.filter((url) => Boolean(toYouTubeEmbedUrl(url))).length === 0}
-                  >
-                    動画 ({selectedRecord.youtubeUrls.filter((url) => Boolean(toYouTubeEmbedUrl(url))).length})
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="images" className="mt-4">
-                  {selectedRecord.images.length === 0 ? (
-                    <p className="text-slate-500 text-sm">画像はありません。</p>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {selectedRecord.images.map((image, index) => (
-                        <button
-                          key={`${image}-${index}`}
-                          type="button"
-                          className="rounded-lg overflow-hidden border border-cyan-100 bg-slate-50 text-left hover:border-cyan-300 transition-colors"
-                          onClick={() =>
-                            setSelectedImagePreview({
-                              src: resolveImageSrc(baseUrl, image),
-                              alt: `${selectedRecord.title} image ${index + 1}`,
-                            })
-                          }
-                        >
-                          <div className="aspect-video">
-                            <img
-                              src={resolveImageSrc(baseUrl, image)}
-                              alt={`${selectedRecord.title} image ${index + 1}`}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <div className="px-3 py-2 text-xs text-slate-500">画像 {index + 1}（クリックで拡大）</div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </TabsContent>
-
-                <TabsContent value="videos" className="mt-4">
-                  {selectedRecord.youtubeUrls.filter((url) => Boolean(toYouTubeEmbedUrl(url))).length === 0 ? (
-                    <p className="text-slate-500 text-sm">動画はありません。</p>
-                  ) : (
-                    <div className="space-y-4">
-                      {selectedRecord.youtubeUrls
-                        .map((url) => toYouTubeEmbedUrl(url))
-                        .filter((url): url is string => Boolean(url))
-                        .map((embedUrl, index) => (
-                          <div key={`${embedUrl}-${index}`} className="rounded-lg overflow-hidden border border-red-100 bg-slate-50">
-                            <div className="aspect-video">
-                              <iframe
-                                src={embedUrl}
-                                title={`${selectedRecord.title} video ${index + 1}`}
-                                className="w-full h-full"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                              />
-                            </div>
-                            <div className="px-3 py-2 text-xs text-slate-500">動画 {index + 1}</div>
-                          </div>
-                        ))}
-                    </div>
-                  )}
-                </TabsContent>
-              </Tabs>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={Boolean(selectedImagePreview)} onOpenChange={(open) => !open && setSelectedImagePreview(null)}>
-        <DialogContent
-          showCloseButton={false}
-          className="w-[96vw] h-[92vh] max-w-none border-0 bg-white p-2 shadow-xl"
-        >
-          {selectedImagePreview && (
-            <div className="relative w-full h-full">
-              <DialogClose className="absolute top-2 right-2 z-10 rounded-md bg-white/95 border border-slate-200 p-1.5 text-slate-600 hover:bg-white">
-                <X className="w-5 h-5" />
-                <span className="sr-only">Close</span>
-              </DialogClose>
-
-              <img
-                src={selectedImagePreview.src}
-                alt={selectedImagePreview.alt}
-                className="block w-full h-full object-contain rounded-md"
-              />
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
 
       <Footer />
     </div>
