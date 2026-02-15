@@ -49,7 +49,7 @@ export function Navigation() {
               <img 
                 src={siteIcon} 
                 alt="Chihalu Studio" 
-                className="w-12 h-12 lg:w-14 lg:h-14 rounded-xl object-cover shadow-lg shadow-cyan-200"
+                className="w-12 h-12 lg:w-14 lg:h-14 rounded-xl object-cover"
               />
               <span className="font-bold text-xl lg:text-2xl hidden sm:block">
                 <span className="text-slate-700">Chihalu</span>
