@@ -233,8 +233,7 @@ function HomePage() {
                 </div>
 
                 <p className="text-slate-500 leading-relaxed mb-6">
-                  こんにちは！Chihaluです。小さい頃からゲームが大好きで、中学生の頃から独学でプログラミングを始めました。
-                  現在はUnityをメインに使用し、様々なジャンルのゲームを制作・配布しています。YouTubeではゲーム開発の過程や技術解説を発信しています。
+                  こんにちは！Chihaluです。独学でプログラミング/3Dモデリングを始めました。 よろしくお願いします！
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
