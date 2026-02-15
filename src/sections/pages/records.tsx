@@ -453,20 +453,20 @@ function RecordsPage() {
       <Dialog open={Boolean(selectedImagePreview)} onOpenChange={(open) => !open && setSelectedImagePreview(null)}>
         <DialogContent
           showCloseButton={false}
-          className="w-fit max-w-[96vw] border-0 bg-transparent p-0 shadow-none"
+          className="w-[96vw] h-[92vh] max-w-none border-0 bg-white p-2 shadow-xl"
         >
           {selectedImagePreview && (
-            <div className="relative">
-              <img
-                src={selectedImagePreview.src}
-                alt={selectedImagePreview.alt}
-                className="block w-auto h-auto max-w-[96vw] max-h-[92vh] object-contain rounded-md"
-              />
-
-              <DialogClose className="absolute -top-11 right-0 z-10 rounded-md bg-white/95 border border-slate-200 p-1.5 text-slate-600 hover:bg-white">
+            <div className="relative w-full h-full">
+              <DialogClose className="absolute top-2 right-2 z-10 rounded-md bg-white/95 border border-slate-200 p-1.5 text-slate-600 hover:bg-white">
                 <X className="w-5 h-5" />
                 <span className="sr-only">Close</span>
               </DialogClose>
+
+              <img
+                src={selectedImagePreview.src}
+                alt={selectedImagePreview.alt}
+                className="block w-full h-full object-contain rounded-md"
+              />
             </div>
           )}
         </DialogContent>
