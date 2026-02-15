@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import { motion } from "framer-motion";
-import { Sparkles, Youtube, Twitter, Github, Gamepad2, Wrench, ChevronRight, MapPin, Code2, Mail } from "lucide-react";
+import { Sparkles, Youtube, Twitter, Github, Gamepad2, Wrench, ChevronRight, MapPin, Code2, Mail, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -33,6 +33,13 @@ const features = [
     description: "動画チャンネル",
     href: `${baseUrl}youtube/`,
     color: "from-red-400 to-rose-400",
+  },
+  {
+    icon: BookOpen,
+    title: "記録",
+    description: "成長記録ページ",
+    href: `${baseUrl}records/`,
+    color: "from-indigo-400 to-cyan-400",
   },
 ];
 
@@ -286,7 +293,7 @@ function HomePage() {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
               <motion.div
                 key={feature.title}
