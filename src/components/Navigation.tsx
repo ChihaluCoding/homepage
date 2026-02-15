@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Package, User, Home, Youtube } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import siteIcon from "../../icon.png";
 
 const baseUrl = import.meta.env.BASE_URL || "/";
 
@@ -41,13 +42,13 @@ export function Navigation() {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16 lg:h-20">
             <motion.a
-              href="/"
+              href={baseUrl}
               className="flex items-center gap-3"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
               <img 
-                src="/icon.png" 
+                src={siteIcon} 
                 alt="Chihalu Studio" 
                 className="w-10 h-10 rounded-xl object-cover shadow-lg shadow-cyan-200"
               />

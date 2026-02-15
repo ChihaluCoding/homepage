@@ -100,8 +100,23 @@ const games = [
   },
 ];
 
+type ToolLikeWork = {
+  id: number;
+  title: string;
+  description: string;
+  category: string;
+  price: number;
+  icon: string;
+  features: string[];
+  color: string;
+  boothUrl: string;
+  trailerUrl: string | null;
+  screenshots: string[];
+  isNew: boolean;
+};
+
 // ツールデータ
-const tools = [
+const tools: ToolLikeWork[] = [
   {
     id: 1,
     title: "Image Converter",
@@ -184,6 +199,98 @@ const tools = [
     boothUrl: "https://booth.pm/",
     trailerUrl: null,
     screenshots: ["📊", "📈", "💻"],
+    isNew: false,
+  },
+];
+
+// 3Dモデルデータ
+const modelAssets: ToolLikeWork[] = [
+  {
+    id: 1,
+    title: "Stylized Tree Pack",
+    description: "ローポリで扱いやすい樹木アセット集。ゲーム背景やシーン制作に最適。",
+    category: "Environment",
+    price: 700,
+    icon: "🌲",
+    features: ["FBX/GLB同梱", "PBRテクスチャ", "LOD対応"],
+    color: "from-green-400 to-emerald-400",
+    boothUrl: "https://booth.pm/",
+    trailerUrl: null,
+    screenshots: ["🌲", "🏞️", "🌿"],
+    isNew: true,
+  },
+  {
+    id: 2,
+    title: "Sci-Fi Crate Set",
+    description: "SFマップに使えるコンテナ・小物モデルセット。軽量で組み合わせやすい構成。",
+    category: "Props",
+    price: 500,
+    icon: "📦",
+    features: ["Modular", "Game Ready", "UV展開済み"],
+    color: "from-cyan-400 to-blue-400",
+    boothUrl: "https://booth.pm/",
+    trailerUrl: null,
+    screenshots: ["📦", "🤖", "🛰️"],
+    isNew: false,
+  },
+  {
+    id: 3,
+    title: "Anime Room Kit",
+    description: "室内シーンを素早く作れる家具・小物の3Dモデルキット。",
+    category: "Interior",
+    price: 900,
+    icon: "🛋️",
+    features: ["Blender対応", "Unity対応", "Texture付き"],
+    color: "from-rose-400 to-pink-400",
+    boothUrl: "https://booth.pm/",
+    trailerUrl: null,
+    screenshots: ["🛋️", "🪟", "💡"],
+    isNew: false,
+  },
+];
+
+// Blenderアドオンデータ
+const blenderAddons: ToolLikeWork[] = [
+  {
+    id: 1,
+    title: "Quick Retopo Assist",
+    description: "リトポロジー作業を効率化する補助アドオン。面貼りやスナップ操作を高速化。",
+    category: "Modeling",
+    price: 1200,
+    icon: "🧊",
+    features: ["ショートカット強化", "スナップ補助", "UI最適化"],
+    color: "from-indigo-400 to-violet-400",
+    boothUrl: "https://booth.pm/",
+    trailerUrl: null,
+    screenshots: ["🧊", "🛠️", "⚡"],
+    isNew: true,
+  },
+  {
+    id: 2,
+    title: "Auto Rig Helper",
+    description: "ボーンセットアップと命名を半自動化し、リギング初期工程を短縮。",
+    category: "Rigging",
+    price: 1500,
+    icon: "🦴",
+    features: ["自動命名", "ミラー対応", "テンプレート保存"],
+    color: "from-amber-400 to-orange-400",
+    boothUrl: "https://booth.pm/",
+    trailerUrl: null,
+    screenshots: ["🦴", "🤖", "🎛️"],
+    isNew: false,
+  },
+  {
+    id: 3,
+    title: "Batch Export Wizard",
+    description: "複数オブジェクトを一括エクスポート。ゲーム向け書き出し設定をプリセット化。",
+    category: "Pipeline",
+    price: 800,
+    icon: "📤",
+    features: ["FBX/GLTF対応", "命名ルール", "一括処理"],
+    color: "from-teal-400 to-cyan-400",
+    boothUrl: "https://booth.pm/",
+    trailerUrl: null,
+    screenshots: ["📤", "📁", "✅"],
     isNew: false,
   },
 ];
@@ -345,9 +452,11 @@ type SortType = 'default' | 'price-asc' | 'price-desc';
 function WorksPage() {
   const baseUrl = import.meta.env.BASE_URL || "/";
   const [selectedGame, setSelectedGame] = useState<typeof games[0] | null>(null);
-  const [selectedTool, setSelectedTool] = useState<typeof tools[0] | null>(null);
+  const [selectedTool, setSelectedTool] = useState<ToolLikeWork | null>(null);
+  const [selectedModelAsset, setSelectedModelAsset] = useState<ToolLikeWork | null>(null);
+  const [selectedBlenderAddon, setSelectedBlenderAddon] = useState<ToolLikeWork | null>(null);
   const [gameSort, setGameSort] = useState<SortType>('default');
-  const [toolSort, setToolSort] = useState<SortType>('default');
+  const [assetSort, setAssetSort] = useState<SortType>('default');
 
   const sortGames = (games: typeof games) => {
     switch (gameSort) {
@@ -360,16 +469,102 @@ function WorksPage() {
     }
   };
 
-  const sortTools = (tools: typeof tools) => {
-    switch (toolSort) {
+  const sortToolLikeWorks = (items: ToolLikeWork[]) => {
+    switch (assetSort) {
       case 'price-asc':
-        return [...tools].sort((a, b) => a.price - b.price);
+        return [...items].sort((a, b) => a.price - b.price);
       case 'price-desc':
-        return [...tools].sort((a, b) => b.price - a.price);
+        return [...items].sort((a, b) => b.price - a.price);
       default:
-        return tools;
+        return items;
     }
   };
+
+  const renderAssetSortButtons = () => (
+    <div className="flex justify-end mb-4">
+      <div className="flex gap-2">
+        <Button
+          variant={assetSort === 'price-asc' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setAssetSort(assetSort === 'price-asc' ? 'default' : 'price-asc')}
+          className={assetSort === 'price-asc' ? 'bg-cyan-500 hover:bg-cyan-600' : ''}
+        >
+          <ArrowUpDown className="w-4 h-4 mr-1" />
+          安い順
+        </Button>
+        <Button
+          variant={assetSort === 'price-desc' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setAssetSort(assetSort === 'price-desc' ? 'default' : 'price-desc')}
+          className={assetSort === 'price-desc' ? 'bg-cyan-500 hover:bg-cyan-600' : ''}
+        >
+          <ArrowUpDown className="w-4 h-4 mr-1" />
+          高い順
+        </Button>
+      </div>
+    </div>
+  );
+
+  const renderToolLikeGrid = (items: ToolLikeWork[], onSelect: (item: ToolLikeWork) => void) => (
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+    >
+      {sortToolLikeWorks(items).map((item) => (
+        <motion.div key={item.id} variants={itemVariants}>
+          <Card
+            className="group bg-white border-slate-200 hover:border-cyan-300 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-100 h-full flex flex-col cursor-pointer"
+            onClick={() => onSelect(item)}
+          >
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between mb-3">
+                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center text-3xl shadow-lg`}>
+                  {item.icon}
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  {item.isNew && (
+                    <Badge className="bg-cyan-500 text-white">
+                      NEW
+                    </Badge>
+                  )}
+                  <Badge variant="outline" className="border-slate-200 text-slate-500">
+                    {item.category}
+                  </Badge>
+                </div>
+              </div>
+              <CardTitle className="text-xl text-slate-700 group-hover:text-cyan-600 transition-colors">
+                {item.title}
+              </CardTitle>
+              <CardDescription className="text-slate-500">{item.description}</CardDescription>
+            </CardHeader>
+
+            <CardContent className="pb-3 flex-grow">
+              <div className="space-y-2">
+                {item.features.slice(0, 3).map((feature) => (
+                  <div key={feature} className="flex items-center gap-2 text-sm text-slate-500">
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-500" />
+                    {feature}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+
+            <CardFooter className="flex items-center justify-between pt-3 border-t border-slate-100 mt-auto">
+              <span className="text-sm font-bold text-cyan-600">
+                {item.price === 0 ? "無料" : `¥${item.price.toLocaleString()}`}
+              </span>
+              <Button size="sm" className="bg-cyan-100 text-cyan-600 hover:bg-cyan-500 hover:text-white transition-all">
+                <ExternalLink className="w-4 h-4 mr-1" />
+                詳細
+              </Button>
+            </CardFooter>
+          </Card>
+        </motion.div>
+      ))}
+    </motion.div>
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -417,7 +612,7 @@ function WorksPage() {
           </motion.div>
 
           <Tabs defaultValue="games" className="w-full">
-            <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8">
+            <TabsList className="grid w-full max-w-4xl mx-auto grid-cols-4 mb-8">
               <TabsTrigger value="games" className="flex items-center gap-2">
                 <Gamepad2 className="w-4 h-4" />
                 ゲーム
@@ -425,6 +620,16 @@ function WorksPage() {
               <TabsTrigger value="tools" className="flex items-center gap-2">
                 <Wrench className="w-4 h-4" />
                 ツール
+              </TabsTrigger>
+              <TabsTrigger value="model-assets" className="flex items-center gap-2 text-xs sm:text-sm">
+                <Package className="w-4 h-4" />
+                <span className="hidden md:inline">3D Model Asset</span>
+                <span className="md:hidden">3D Asset</span>
+              </TabsTrigger>
+              <TabsTrigger value="blender-addons" className="flex items-center gap-2 text-xs sm:text-sm">
+                <Wrench className="w-4 h-4" />
+                <span className="hidden md:inline">Blender Addon</span>
+                <span className="md:hidden">Addon</span>
               </TabsTrigger>
             </TabsList>
 
@@ -520,86 +725,20 @@ function WorksPage() {
 
             {/* ツールタブ */}
             <TabsContent value="tools">
-              <div className="flex justify-end mb-4">
-                <div className="flex gap-2">
-                  <Button
-                    variant={toolSort === 'price-asc' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setToolSort(toolSort === 'price-asc' ? 'default' : 'price-asc')}
-                    className={toolSort === 'price-asc' ? 'bg-cyan-500 hover:bg-cyan-600' : ''}
-                  >
-                    <ArrowUpDown className="w-4 h-4 mr-1" />
-                    安い順
-                  </Button>
-                  <Button
-                    variant={toolSort === 'price-desc' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setToolSort(toolSort === 'price-desc' ? 'default' : 'price-desc')}
-                    className={toolSort === 'price-desc' ? 'bg-cyan-500 hover:bg-cyan-600' : ''}
-                  >
-                    <ArrowUpDown className="w-4 h-4 mr-1" />
-                    高い順
-                  </Button>
-                </div>
-              </div>
-              <motion.div
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              >
-                {sortTools(tools).map((tool) => (
-                  <motion.div key={tool.id} variants={itemVariants}>
-                    <Card 
-                      className="group bg-white border-slate-200 hover:border-cyan-300 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-100 h-full flex flex-col cursor-pointer"
-                      onClick={() => setSelectedTool(tool)}
-                    >
-                      <CardHeader className="pb-3">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${tool.color} flex items-center justify-center text-3xl shadow-lg`}>
-                            {tool.icon}
-                          </div>
-                          <div className="flex flex-col items-end gap-2">
-                            {tool.isNew && (
-                              <Badge className="bg-cyan-500 text-white">
-                                NEW
-                              </Badge>
-                            )}
-                            <Badge variant="outline" className="border-slate-200 text-slate-500">
-                              {tool.category}
-                            </Badge>
-                          </div>
-                        </div>
-                        <CardTitle className="text-xl text-slate-700 group-hover:text-cyan-600 transition-colors">
-                          {tool.title}
-                        </CardTitle>
-                        <CardDescription className="text-slate-500">{tool.description}</CardDescription>
-                      </CardHeader>
+              {renderAssetSortButtons()}
+              {renderToolLikeGrid(tools, setSelectedTool)}
+            </TabsContent>
 
-                      <CardContent className="pb-3 flex-grow">
-                        <div className="space-y-2">
-                          {tool.features.slice(0, 3).map((feature) => (
-                            <div key={feature} className="flex items-center gap-2 text-sm text-slate-500">
-                              <span className="w-1.5 h-1.5 rounded-full bg-cyan-500" />
-                              {feature}
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
+            {/* 3Dモデルタブ */}
+            <TabsContent value="model-assets">
+              {renderAssetSortButtons()}
+              {renderToolLikeGrid(modelAssets, setSelectedModelAsset)}
+            </TabsContent>
 
-                      <CardFooter className="flex items-center justify-between pt-3 border-t border-slate-100 mt-auto">
-                        <span className="text-sm font-bold text-cyan-600">
-                          {tool.price === 0 ? "無料" : `¥${tool.price.toLocaleString()}`}
-                        </span>
-                        <Button size="sm" className="bg-cyan-100 text-cyan-600 hover:bg-cyan-500 hover:text-white transition-all">
-                          <ExternalLink className="w-4 h-4 mr-1" />
-                          詳細
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  </motion.div>
-                ))}
-              </motion.div>
+            {/* Blenderアドオンタブ */}
+            <TabsContent value="blender-addons">
+              {renderAssetSortButtons()}
+              {renderToolLikeGrid(blenderAddons, setSelectedBlenderAddon)}
             </TabsContent>
           </Tabs>
         </div>
@@ -616,6 +755,18 @@ function WorksPage() {
         isOpen={!!selectedTool} 
         onClose={() => setSelectedTool(null)} 
         work={selectedTool} 
+        type="tool"
+      />
+      <WorkDetailDialog 
+        isOpen={!!selectedModelAsset} 
+        onClose={() => setSelectedModelAsset(null)} 
+        work={selectedModelAsset} 
+        type="tool"
+      />
+      <WorkDetailDialog 
+        isOpen={!!selectedBlenderAddon} 
+        onClose={() => setSelectedBlenderAddon(null)} 
+        work={selectedBlenderAddon} 
         type="tool"
       />
 
