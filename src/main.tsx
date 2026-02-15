@@ -104,7 +104,7 @@ function HomePage() {
               transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
               className="w-full max-w-2xl space-y-6"
             >
-              <div className="relative overflow-hidden rounded-[28px] border border-cyan-100/80 bg-white p-9 lg:p-12 text-center lg:text-left">
+              <div className="relative overflow-hidden rounded-[28px] border border-cyan-100/80 bg-white p-6 sm:p-9 lg:p-12 text-center lg:text-left">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -119,10 +119,10 @@ function HomePage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
-                  className="relative text-6xl lg:text-7xl font-black mb-6 tracking-tight"
+                  className="relative text-5xl sm:text-6xl lg:text-7xl font-black mb-6 tracking-tight leading-[1.05] break-words"
                 >
                   <span className="text-slate-700">Chihalu</span>
-                  <span className="bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-500 bg-clip-text text-transparent ml-1">
+                  <span className="block sm:inline bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-500 bg-clip-text text-transparent sm:ml-1">
                     Studio
                   </span>
                 </motion.h1>
