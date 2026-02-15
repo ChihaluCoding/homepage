@@ -27,8 +27,8 @@ const footerLinks = {
 
 const socialLinks = [
   { name: "YouTube", icon: Youtube, href: "/youtube/", color: "bg-red-500 hover:bg-red-600" },
-  { name: "Twitter", icon: Twitter, href: "#", color: "bg-sky-500 hover:bg-sky-600" },
-  { name: "GitHub", icon: Github, href: "#", color: "bg-slate-700 hover:bg-slate-800" },
+  { name: "X", icon: Twitter, href: "https://x.com/ChihaluCoding", color: "bg-sky-500 hover:bg-sky-600" },
+  { name: "GitHub", icon: Github, href: "https://github.com/ChihaluCoding", color: "bg-slate-700 hover:bg-slate-800" },
   { name: "Email", icon: Mail, href: "#", color: "bg-cyan-500 hover:bg-cyan-600" },
 ];
 

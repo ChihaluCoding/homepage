@@ -45,8 +45,8 @@ const features = [
 
 const profileSocialLinks = [
   { name: "YouTube", icon: Youtube, href: `${baseUrl}youtube/`, color: "from-red-500 to-rose-500" },
-  { name: "Twitter", icon: Twitter, href: "#", color: "from-sky-400 to-blue-500" },
-  { name: "GitHub", icon: Github, href: "#", color: "from-slate-500 to-slate-700" },
+  { name: "X", icon: Twitter, href: "https://x.com/ChihaluCoding", color: "from-sky-400 to-blue-500" },
+  { name: "GitHub", icon: Github, href: "https://github.com/ChihaluCoding", color: "from-slate-500 to-slate-700" },
   { name: "Email", icon: Mail, href: "#", color: "from-cyan-400 to-sky-500" },
 ];
 
@@ -170,8 +170,8 @@ function HomePage() {
                 >
                   {[
                     { icon: Youtube, href: `${baseUrl}youtube/`, accent: "hover:border-red-300 hover:bg-red-50 hover:text-red-500" },
-                    { icon: Twitter, href: "#", accent: "hover:border-sky-300 hover:bg-sky-50 hover:text-sky-500" },
-                    { icon: Github, href: "#", accent: "hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700" },
+                    { icon: Twitter, href: "https://x.com/ChihaluCoding", accent: "hover:border-sky-300 hover:bg-sky-50 hover:text-sky-500" },
+                    { icon: Github, href: "https://github.com/ChihaluCoding", accent: "hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700" },
                   ].map((social) => (
                     <motion.a
                       key={social.icon.name}
