@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Heart, Sparkles, ArrowUp } from "lucide-react";
+import { Heart, Youtube, Twitter, Github, ArrowUp } from "lucide-react";
 import siteIcon from "../../icon.png";
 
 // アニメーションするハート
@@ -52,16 +52,16 @@ function FloatingEmoji({
   );
 }
 
-// ソーシャルリンク
+// SNSリンク - 公式アイコン使用
 function SocialLink({
   href,
-  icon,
+  icon: Icon,
   label,
   color,
   delay,
 }: {
   href: string;
-  icon: string;
+  icon: typeof Youtube;
   label: string;
   color: string;
   delay: number;
@@ -69,6 +69,8 @@ function SocialLink({
   return (
     <motion.a
       href={href}
+      target="_blank"
+      rel="noopener noreferrer"
       initial={{ opacity: 0, scale: 0 }}
       whileInView={{ opacity: 1, scale: 1 }}
       viewport={{ once: true }}
@@ -79,21 +81,34 @@ function SocialLink({
         damping: 15,
       }}
       whileHover={{
-        scale: 1.2,
+        scale: 1.15,
         y: -5,
-        rotate: [0, -10, 10, 0],
       }}
       whileTap={{ scale: 0.9 }}
-      className={`w-12 h-12 rounded-2xl ${color} flex items-center justify-center text-2xl shadow-lg relative overflow-hidden group`}
+      className={`w-12 h-12 rounded-2xl ${color} flex items-center justify-center text-white shadow-lg relative overflow-hidden group`}
       title={label}
     >
+      {/* ホバー時の光のエフェクト */}
       <motion.div
-        className="absolute inset-0 bg-white/20"
+        className="absolute inset-0 bg-white/30"
         initial={{ x: "-100%", skewX: -20 }}
         whileHover={{ x: "100%" }}
         transition={{ duration: 0.5 }}
       />
-      <span className="relative z-10">{icon}</span>
+      {/* キラキラ */}
+      <motion.div
+        className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full"
+        animate={{
+          scale: [0, 1, 0],
+          opacity: [0, 0.8, 0],
+        }}
+        transition={{
+          duration: 2,
+          repeat: Infinity,
+          delay: delay * 0.5,
+        }}
+      />
+      <Icon className="w-6 h-6 relative z-10" />
     </motion.a>
   );
 }
@@ -177,27 +192,27 @@ export function Footer() {
               </div>
             </motion.a>
 
-            {/* Social Links */}
+            {/* SNS Links - 公式アイコン */}
             <div className="flex gap-4 mb-8">
               <SocialLink
                 href="https://www.youtube.com/@%E3%81%A1%E3%81%AF%E3%82%8B_Dev"
-                icon="📺"
+                icon={Youtube}
                 label="YouTube"
-                color="bg-gradient-to-br from-rose-300 to-pink-300"
+                color="bg-gradient-to-br from-red-400 to-rose-500"
                 delay={0}
               />
               <SocialLink
                 href="https://x.com/ChihaluCoding"
-                icon="🐦"
-                label="X"
-                color="bg-gradient-to-br from-sky-300 to-blue-300"
+                icon={Twitter}
+                label="X (Twitter)"
+                color="bg-gradient-to-br from-slate-700 to-slate-800"
                 delay={1}
               />
               <SocialLink
                 href="https://github.com/ChihaluCoding"
-                icon="🐙"
+                icon={Github}
                 label="GitHub"
-                color="bg-gradient-to-br from-purple-300 to-indigo-300"
+                color="bg-gradient-to-br from-purple-500 to-indigo-500"
                 delay={2}
               />
             </div>
@@ -210,24 +225,20 @@ export function Footer() {
               viewport={{ once: true }}
               transition={{ delay: 0.4 }}
             >
-              {["ほーむ", "ようつべ", "しょっぷ", "きろく"].map((link, index) => (
+              {[
+                { name: "ほーむ", href: baseUrl, emoji: "🏠" },
+                { name: "ようつべ", href: `${baseUrl}youtube/`, emoji: "📺" },
+                { name: "しょっぷ", href: `${baseUrl}works/`, emoji: "🛍️" },
+                { name: "きろく", href: `${baseUrl}records/`, emoji: "📚" },
+              ].map((link) => (
                 <motion.a
-                  key={link}
-                  href={`${baseUrl}${link === "ほーむ" ? "" : link + "/"}`}
-                  className="text-slate-400 hover:text-pink-500 transition-colors flex items-center gap-1"
+                  key={link.name}
+                  href={link.href}
+                  className="text-slate-400 hover:text-pink-500 transition-colors flex items-center gap-1 font-medium"
                   whileHover={{ scale: 1.1, y: -2 }}
                 >
-                  <motion.span
-                    animate={{ rotate: [0, 360] }}
-                    transition={{
-                      duration: 4,
-                      repeat: Infinity,
-                      delay: index * 0.5,
-                    }}
-                  >
-                    <Sparkles className="w-3 h-3" />
-                  </motion.span>
-                  {link}
+                  <span>{link.emoji}</span>
+                  {link.name}
                 </motion.a>
               ))}
             </motion.div>
