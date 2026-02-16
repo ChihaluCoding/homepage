@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import { motion } from "framer-motion";
-import { Youtube, Play, Eye, ThumbsUp, ExternalLink, ChevronLeft } from "lucide-react";
+import { Youtube, Play, Eye, ThumbsUp, ExternalLink, ChevronLeft, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,6 +20,7 @@ type ChannelSeed = {
   handle: string;
   fallbackName: string;
   url: string;
+  fallbackChannelId: string;
   color: string;
   fallbackEmoji: string;
   videoMode: VideoMode;
@@ -34,6 +35,7 @@ type ChannelProfile = {
   fallbackEmoji: string;
   videoMode: VideoMode;
   channelId: string;
+  statsUrl: string;
   uploadsPlaylistId: string;
   subscriberCount: number | null;
   videoCount: number | null;
@@ -155,6 +157,7 @@ const channelSeeds: ChannelSeed[] = [
     handle: "MinaAudrey",
     fallbackName: "Mina Audrey",
     url: "https://www.youtube.com/@MinaAudrey",
+    fallbackChannelId: "UCFkHpBGMeNSQW-j9-F0nxnQ",
     color: "from-red-500 to-rose-500",
     fallbackEmoji: "🎤",
     videoMode: "streams",
@@ -164,6 +167,7 @@ const channelSeeds: ChannelSeed[] = [
     handle: "jarujaruisland8111",
     fallbackName: "ジャルジャルアイランド",
     url: "https://www.youtube.com/@jarujaruisland8111",
+    fallbackChannelId: "UCf-wG6PlxW7rpixx1tmODJw",
     color: "from-cyan-500 to-sky-500",
     fallbackEmoji: "🤣",
     videoMode: "videos",
@@ -173,6 +177,7 @@ const channelSeeds: ChannelSeed[] = [
     handle: "jarujarutower365",
     fallbackName: "ジャルジャルタワー",
     url: "https://www.youtube.com/@jarujarutower365",
+    fallbackChannelId: "UChwgNUWPM-ksOP3BbfQHS5Q",
     color: "from-purple-500 to-pink-500",
     fallbackEmoji: "🏙️",
     videoMode: "videos",
@@ -261,6 +266,10 @@ function formatDuration(value: string): string {
   return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
+function buildNextCountsStatsUrl(channelId: string): string {
+  return `https://nextcounts.com/youtube/user/?u=${channelId}`;
+}
+
 function fallbackProfile(seed: ChannelSeed): ChannelProfile {
   return {
     id: seed.id,
@@ -270,7 +279,8 @@ function fallbackProfile(seed: ChannelSeed): ChannelProfile {
     color: seed.color,
     fallbackEmoji: seed.fallbackEmoji,
     videoMode: seed.videoMode,
-    channelId: "",
+    channelId: seed.fallbackChannelId,
+    statsUrl: buildNextCountsStatsUrl(seed.fallbackChannelId),
     uploadsPlaylistId: "",
     subscriberCount: null,
     videoCount: null,
@@ -312,6 +322,8 @@ async function fetchChannelProfile(seed: ChannelSeed, apiKey: string): Promise<C
 
   if (!channelItem) return null;
 
+  const resolvedChannelId = channelItem.id ?? seed.fallbackChannelId;
+
   return {
     id: seed.id,
     handle,
@@ -320,7 +332,8 @@ async function fetchChannelProfile(seed: ChannelSeed, apiKey: string): Promise<C
     color: seed.color,
     fallbackEmoji: seed.fallbackEmoji,
     videoMode: seed.videoMode,
-    channelId: channelItem.id ?? "",
+    channelId: resolvedChannelId,
+    statsUrl: buildNextCountsStatsUrl(resolvedChannelId),
     uploadsPlaylistId: channelItem.contentDetails?.relatedPlaylists?.uploads ?? "",
     subscriberCount: toNullableNumber(channelItem.statistics?.subscriberCount),
     videoCount: toNullableNumber(channelItem.statistics?.videoCount),
@@ -849,11 +862,17 @@ function YouTubePage() {
                           </div>
                         </div>
                       </div>
-                      <div className="mt-4 pt-4 border-t border-slate-100">
+                      <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <a href={channel.url} target="_blank" rel="noopener noreferrer">
                           <Button size="sm" className="w-full bg-red-500 hover:bg-red-600 text-white">
                             <ExternalLink className="w-4 h-4 mr-2" />
                             チャンネルを見る
+                          </Button>
+                        </a>
+                        <a href={channel.statsUrl} target="_blank" rel="noopener noreferrer">
+                          <Button size="sm" variant="outline" className="w-full border-cyan-200 text-cyan-700 hover:bg-cyan-50 hover:border-cyan-300">
+                            <BarChart3 className="w-4 h-4 mr-2" />
+                            統計を見る
                           </Button>
                         </a>
                       </div>
