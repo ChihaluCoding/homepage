@@ -130,6 +130,14 @@ type NextCountsChannelResponse = {
   subcount?: number | string;
   viewcount?: number | string;
   videos?: number | string;
+  abbreviated?: boolean;
+};
+
+type NextCountsChannelEstimateResponse = {
+  success?: boolean;
+  estimatedSubCount?: number | string;
+  totalViews?: number | string;
+  videos?: number | string;
 };
 
 type YouTubePlayerState = -1 | 0 | 1 | 2 | 3 | 5;
@@ -464,12 +472,38 @@ async function fetchNextCountsChannelStats(channelId: string): Promise<{
 }> {
   const url = `${NEXTCOUNTS_API_BASE}/youtube/channel/${channelId}`;
   const data = await fetchJson<NextCountsChannelResponse>(url);
+  const apiSubscriberCount = toNullableNumberUnknown(data.subcount);
+  const apiVideoCount = toNullableNumberUnknown(data.videos);
+  const apiTotalViewCount = toNullableNumberUnknown(data.viewcount);
 
-  return {
-    subscriberCount: toNullableNumberUnknown(data.subcount),
-    videoCount: toNullableNumberUnknown(data.videos),
-    totalViewCount: toNullableNumberUnknown(data.viewcount),
-  };
+  const shouldUseEstimate = data.abbreviated === true && (apiSubscriberCount ?? 0) >= 50000;
+  if (!shouldUseEstimate) {
+    return {
+      subscriberCount: apiSubscriberCount,
+      videoCount: apiVideoCount,
+      totalViewCount: apiTotalViewCount,
+    };
+  }
+
+  try {
+    const estimateUrl = `${NEXTCOUNTS_API_BASE}/youtube/channel/estimate/mixerno/${channelId}`;
+    const estimate = await fetchJson<NextCountsChannelEstimateResponse>(estimateUrl);
+    const estimatedSubscriberCount = toNullableNumberUnknown(estimate.estimatedSubCount);
+    const estimatedVideoCount = toNullableNumberUnknown(estimate.videos);
+    const estimatedTotalViewCount = toNullableNumberUnknown(estimate.totalViews);
+
+    return {
+      subscriberCount: estimatedSubscriberCount ?? apiSubscriberCount,
+      videoCount: estimatedVideoCount ?? apiVideoCount,
+      totalViewCount: estimatedTotalViewCount ?? apiTotalViewCount,
+    };
+  } catch {
+    return {
+      subscriberCount: apiSubscriberCount,
+      videoCount: apiVideoCount,
+      totalViewCount: apiTotalViewCount,
+    };
+  }
 }
 
 async function fetchChannelVideos(channel: ChannelProfile, apiKey: string): Promise<ChannelVideo[]> {
