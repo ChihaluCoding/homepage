@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import { motion } from "framer-motion";
 import { Youtube, Play, Eye, ThumbsUp, ExternalLink, ChevronLeft } from "lucide-react";
@@ -10,63 +10,170 @@ import { ParticlesBackground } from "@/components/ParticlesBackground";
 import { Footer } from "@/sections/Footer";
 import "@/index.css";
 
-const favoriteChannels = [
-  {
-    id: 1,
-    name: "Mina Audrey",
-    description: "@MinaAudrey",
-    subscribers: "-",
-    videos: 0,
-    url: "https://www.youtube.com/@MinaAudrey",
-    thumbnail: "🎤",
-    color: "from-red-500 to-rose-500",
-  },
-  {
-    id: 2,
-    name: "ジャルジャルアイランド",
-    description: "@jarujaruisland8111",
-    subscribers: "-",
-    videos: 0,
-    url: "https://www.youtube.com/@jarujaruisland8111",
-    thumbnail: "🤣",
-    color: "from-cyan-500 to-sky-500",
-  },
-  {
-    id: 3,
-    name: "ジャルジャルタワー",
-    description: "@jarujarutower365",
-    subscribers: "-",
-    videos: 0,
-    url: "https://www.youtube.com/@jarujarutower365",
-    thumbnail: "🏙️",
-    color: "from-purple-500 to-pink-500",
-  },
-];
+const YOUTUBE_API_BASE = "https://www.googleapis.com/youtube/v3";
+const AUTO_SLIDE_INTERVAL_MS = 5000;
 
-const featuredVideos = [
+type VideoMode = "streams" | "videos";
+
+type ChannelSeed = {
+  id: number;
+  handle: string;
+  fallbackName: string;
+  url: string;
+  color: string;
+  fallbackEmoji: string;
+  videoMode: VideoMode;
+};
+
+type ChannelProfile = {
+  id: number;
+  handle: string;
+  title: string;
+  url: string;
+  color: string;
+  fallbackEmoji: string;
+  videoMode: VideoMode;
+  channelId: string;
+  uploadsPlaylistId: string;
+  subscriberCount: number | null;
+  videoCount: number | null;
+  thumbnailUrl: string;
+};
+
+type ChannelVideo = {
+  id: string;
+  title: string;
+  durationIso: string;
+  views: number | null;
+  likes: number | null;
+  thumbnailUrl: string;
+  publishedAt: string;
+};
+
+type YouTubeThumbnailSet = {
+  default?: { url?: string };
+  medium?: { url?: string };
+  high?: { url?: string };
+  standard?: { url?: string };
+  maxres?: { url?: string };
+};
+
+type YouTubeChannelItem = {
+  id?: string;
+  snippet?: {
+    title?: string;
+    thumbnails?: YouTubeThumbnailSet;
+  };
+  statistics?: {
+    subscriberCount?: string;
+    videoCount?: string;
+  };
+  contentDetails?: {
+    relatedPlaylists?: {
+      uploads?: string;
+    };
+  };
+};
+
+type YouTubeChannelListResponse = {
+  items?: YouTubeChannelItem[];
+};
+
+type YouTubeSearchResponse = {
+  items?: Array<{
+    id?: {
+      channelId?: string;
+      videoId?: string;
+    };
+    snippet?: {
+      liveBroadcastContent?: string;
+    };
+  }>;
+};
+
+type YouTubePlaylistItemsResponse = {
+  items?: Array<{
+    contentDetails?: {
+      videoId?: string;
+    };
+    snippet?: {
+      title?: string;
+    };
+  }>;
+};
+
+type YouTubeVideosResponse = {
+  items?: Array<{
+    id?: string;
+    snippet?: {
+      title?: string;
+      publishedAt?: string;
+      thumbnails?: YouTubeThumbnailSet;
+    };
+    statistics?: {
+      viewCount?: string;
+      likeCount?: string;
+    };
+    contentDetails?: {
+      duration?: string;
+    };
+  }>;
+};
+
+type YouTubePlayerState = -1 | 0 | 1 | 2 | 3 | 5;
+
+type YouTubePlayerInstance = {
+  destroy: () => void;
+};
+
+type YouTubePlayerNamespace = {
+  Player: new (
+    element: HTMLElement,
+    options: {
+      videoId: string;
+      playerVars?: Record<string, string | number>;
+      events?: {
+        onStateChange?: (event: { data: YouTubePlayerState }) => void;
+      };
+    }
+  ) => YouTubePlayerInstance;
+  PlayerState: {
+    PLAYING: number;
+  };
+};
+
+type WindowWithYouTube = Window & {
+  YT?: YouTubePlayerNamespace;
+  onYouTubeIframeAPIReady?: () => void;
+};
+
+const channelSeeds: ChannelSeed[] = [
   {
     id: 1,
-    title: "【Unity】初心者向けゲーム制作講座 #1",
-    views: "5.2K",
-    likes: 320,
-    duration: "15:30",
-    thumbnail: "🎓",
+    handle: "MinaAudrey",
+    fallbackName: "Mina Audrey",
+    url: "https://www.youtube.com/@MinaAudrey",
+    color: "from-red-500 to-rose-500",
+    fallbackEmoji: "🎤",
+    videoMode: "streams",
   },
   {
     id: 2,
-    title: "新作ゲーム「Pixel Adventure」紹介",
-    views: "3.8K",
-    likes: 245,
-    duration: "8:45",
-    thumbnail: "🎮",
+    handle: "jarujaruisland8111",
+    fallbackName: "ジャルジャルアイランド",
+    url: "https://www.youtube.com/@jarujaruisland8111",
+    color: "from-cyan-500 to-sky-500",
+    fallbackEmoji: "🤣",
+    videoMode: "videos",
   },
   {
     id: 3,
-    title: "プログラマーの1日に密着",
-    views: "2.1K",
-    likes: 180,
-    duration: "12:00",
-    thumbnail: "📅",
+    handle: "jarujarutower365",
+    fallbackName: "ジャルジャルタワー",
+    url: "https://www.youtube.com/@jarujarutower365",
+    color: "from-purple-500 to-pink-500",
+    fallbackEmoji: "🏙️",
+    videoMode: "videos",
   },
 ];
 
@@ -90,8 +197,544 @@ const itemVariants = {
   },
 };
 
+let youtubeIframeApiPromise: Promise<YouTubePlayerNamespace> | null = null;
+
+function normalizeHandle(handle: string): string {
+  return handle.replace(/^@/, "").trim();
+}
+
+function buildApiUrl(endpoint: string, params: Record<string, string | number>): string {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    query.set(key, String(value));
+  });
+  return `${YOUTUBE_API_BASE}/${endpoint}?${query.toString()}`;
+}
+
+async function fetchJson<T>(url: string): Promise<T> {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`YouTube API error: ${response.status}`);
+  }
+  return (await response.json()) as T;
+}
+
+function toNullableNumber(value: string | undefined): number | null {
+  if (!value) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function pickThumbnailUrl(thumbnails: YouTubeThumbnailSet | undefined): string {
+  return (
+    thumbnails?.high?.url ??
+    thumbnails?.medium?.url ??
+    thumbnails?.default?.url ??
+    thumbnails?.standard?.url ??
+    thumbnails?.maxres?.url ??
+    ""
+  );
+}
+
+function formatCount(value: number | null): string {
+  if (value === null) return "-";
+  return new Intl.NumberFormat("ja-JP", {
+    notation: "compact",
+    compactDisplay: "short",
+    maximumFractionDigits: 1,
+  }).format(value);
+}
+
+function formatDuration(value: string): string {
+  const match = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/.exec(value);
+  if (!match) return "--:--";
+
+  const hours = Number(match[1] ?? "0");
+  const minutes = Number(match[2] ?? "0");
+  const seconds = Number(match[3] ?? "0");
+
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  }
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
+
+function fallbackProfile(seed: ChannelSeed): ChannelProfile {
+  return {
+    id: seed.id,
+    handle: seed.handle,
+    title: seed.fallbackName,
+    url: seed.url,
+    color: seed.color,
+    fallbackEmoji: seed.fallbackEmoji,
+    videoMode: seed.videoMode,
+    channelId: "",
+    uploadsPlaylistId: "",
+    subscriberCount: null,
+    videoCount: null,
+    thumbnailUrl: "",
+  };
+}
+
+async function fetchChannelProfile(seed: ChannelSeed, apiKey: string): Promise<ChannelProfile | null> {
+  const handle = normalizeHandle(seed.handle);
+  const byHandleUrl = buildApiUrl("channels", {
+    part: "snippet,statistics,contentDetails",
+    forHandle: handle,
+    key: apiKey,
+  });
+
+  const byHandle = await fetchJson<YouTubeChannelListResponse>(byHandleUrl);
+  let channelItem = byHandle.items?.[0];
+
+  if (!channelItem) {
+    const searchUrl = buildApiUrl("search", {
+      part: "snippet",
+      type: "channel",
+      q: `@${handle}`,
+      maxResults: 1,
+      key: apiKey,
+    });
+    const searchResult = await fetchJson<YouTubeSearchResponse>(searchUrl);
+    const channelIdFromSearch = searchResult.items?.[0]?.id?.channelId ?? "";
+    if (!channelIdFromSearch) return null;
+
+    const byIdUrl = buildApiUrl("channels", {
+      part: "snippet,statistics,contentDetails",
+      id: channelIdFromSearch,
+      key: apiKey,
+    });
+    const byIdResult = await fetchJson<YouTubeChannelListResponse>(byIdUrl);
+    channelItem = byIdResult.items?.[0];
+  }
+
+  if (!channelItem) return null;
+
+  return {
+    id: seed.id,
+    handle,
+    title: channelItem.snippet?.title ?? seed.fallbackName,
+    url: seed.url,
+    color: seed.color,
+    fallbackEmoji: seed.fallbackEmoji,
+    videoMode: seed.videoMode,
+    channelId: channelItem.id ?? "",
+    uploadsPlaylistId: channelItem.contentDetails?.relatedPlaylists?.uploads ?? "",
+    subscriberCount: toNullableNumber(channelItem.statistics?.subscriberCount),
+    videoCount: toNullableNumber(channelItem.statistics?.videoCount),
+    thumbnailUrl: pickThumbnailUrl(channelItem.snippet?.thumbnails),
+  };
+}
+
+async function fetchLatestStreamVideoIds(channelId: string, apiKey: string): Promise<string[]> {
+  const url = buildApiUrl("search", {
+    part: "snippet",
+    channelId,
+    type: "video",
+    eventType: "completed",
+    order: "date",
+    maxResults: 5,
+    key: apiKey,
+  });
+  const data = await fetchJson<YouTubeSearchResponse>(url);
+  const uniqueIds = new Set<string>();
+  for (const item of data.items ?? []) {
+    const videoId = item.id?.videoId ?? "";
+    if (!videoId) continue;
+    uniqueIds.add(videoId);
+  }
+  return Array.from(uniqueIds).slice(0, 5);
+}
+
+async function fetchLatestUploadVideoIds(uploadsPlaylistId: string, apiKey: string): Promise<string[]> {
+  if (!uploadsPlaylistId) return [];
+
+  const url = buildApiUrl("playlistItems", {
+    part: "contentDetails,snippet",
+    playlistId: uploadsPlaylistId,
+    maxResults: 10,
+    key: apiKey,
+  });
+  const data = await fetchJson<YouTubePlaylistItemsResponse>(url);
+  const uniqueIds = new Set<string>();
+
+  for (const item of data.items ?? []) {
+    const title = item.snippet?.title ?? "";
+    if (title === "Private video" || title === "Deleted video") continue;
+    const videoId = item.contentDetails?.videoId ?? "";
+    if (!videoId) continue;
+    uniqueIds.add(videoId);
+    if (uniqueIds.size >= 5) break;
+  }
+
+  return Array.from(uniqueIds);
+}
+
+async function fetchLatestVideoIdsBySearch(channelId: string, apiKey: string): Promise<string[]> {
+  const url = buildApiUrl("search", {
+    part: "snippet",
+    channelId,
+    type: "video",
+    order: "date",
+    maxResults: 10,
+    key: apiKey,
+  });
+  const data = await fetchJson<YouTubeSearchResponse>(url);
+
+  const nonLive = (data.items ?? []).filter((item) => item.snippet?.liveBroadcastContent === "none");
+  const source = nonLive.length >= 5 ? nonLive : (data.items ?? []);
+
+  const uniqueIds = new Set<string>();
+  for (const item of source) {
+    const videoId = item.id?.videoId ?? "";
+    if (!videoId) continue;
+    uniqueIds.add(videoId);
+    if (uniqueIds.size >= 5) break;
+  }
+  return Array.from(uniqueIds);
+}
+
+async function fetchVideoDetails(videoIds: string[], apiKey: string): Promise<ChannelVideo[]> {
+  if (videoIds.length === 0) return [];
+
+  const url = buildApiUrl("videos", {
+    part: "snippet,statistics,contentDetails",
+    id: videoIds.join(","),
+    key: apiKey,
+  });
+  const data = await fetchJson<YouTubeVideosResponse>(url);
+
+  const byId = new Map<string, NonNullable<YouTubeVideosResponse["items"]>[number]>();
+  for (const item of data.items ?? []) {
+    if (!item.id) continue;
+    byId.set(item.id, item);
+  }
+
+  const ordered: ChannelVideo[] = [];
+  for (const id of videoIds) {
+    const item = byId.get(id);
+    if (!item) continue;
+
+    ordered.push({
+      id,
+      title: item.snippet?.title ?? "タイトルなし",
+      durationIso: item.contentDetails?.duration ?? "",
+      views: toNullableNumber(item.statistics?.viewCount),
+      likes: toNullableNumber(item.statistics?.likeCount),
+      thumbnailUrl: pickThumbnailUrl(item.snippet?.thumbnails),
+      publishedAt: item.snippet?.publishedAt ?? "",
+    });
+  }
+
+  return ordered;
+}
+
+async function fetchChannelVideos(channel: ChannelProfile, apiKey: string): Promise<ChannelVideo[]> {
+  if (!channel.channelId) return [];
+
+  let videoIds: string[] = [];
+
+  if (channel.videoMode === "streams") {
+    videoIds = await fetchLatestStreamVideoIds(channel.channelId, apiKey);
+  } else {
+    videoIds = await fetchLatestUploadVideoIds(channel.uploadsPlaylistId, apiKey);
+    if (videoIds.length < 5) {
+      const fallbackIds = await fetchLatestVideoIdsBySearch(channel.channelId, apiKey);
+      if (fallbackIds.length > videoIds.length) {
+        videoIds = fallbackIds;
+      }
+    }
+  }
+
+  return fetchVideoDetails(videoIds.slice(0, 5), apiKey);
+}
+
+function loadYouTubeIframeApi(): Promise<YouTubePlayerNamespace> {
+  const win = window as WindowWithYouTube;
+  if (win.YT?.Player) return Promise.resolve(win.YT);
+  if (youtubeIframeApiPromise) return youtubeIframeApiPromise;
+
+  youtubeIframeApiPromise = new Promise<YouTubePlayerNamespace>((resolve, reject) => {
+    const existingHandler = win.onYouTubeIframeAPIReady;
+    const timeoutId = window.setTimeout(() => {
+      reject(new Error("YouTube iframe API load timeout"));
+    }, 15000);
+
+    win.onYouTubeIframeAPIReady = () => {
+      existingHandler?.();
+      if (win.YT?.Player) {
+        window.clearTimeout(timeoutId);
+        resolve(win.YT);
+      }
+    };
+
+    const existingScript = document.querySelector<HTMLScriptElement>('script[src="https://www.youtube.com/iframe_api"]');
+    if (!existingScript) {
+      const script = document.createElement("script");
+      script.src = "https://www.youtube.com/iframe_api";
+      script.async = true;
+      script.onerror = () => {
+        window.clearTimeout(timeoutId);
+        reject(new Error("Failed to load YouTube iframe API"));
+      };
+      document.head.appendChild(script);
+    }
+  }).catch((error: unknown) => {
+    youtubeIframeApiPromise = null;
+    throw error;
+  });
+
+  return youtubeIframeApiPromise;
+}
+
+function YouTubeVideoPlayer({
+  videoId,
+  onPlayingChange,
+}: {
+  videoId: string;
+  onPlayingChange: (value: boolean) => void;
+}) {
+  const mountRef = useRef<HTMLDivElement | null>(null);
+  const playerRef = useRef<YouTubePlayerInstance | null>(null);
+
+  useEffect(() => {
+    let disposed = false;
+    onPlayingChange(false);
+
+    const setup = async () => {
+      const yt = await loadYouTubeIframeApi();
+      if (disposed || !mountRef.current) return;
+
+      playerRef.current = new yt.Player(mountRef.current, {
+        videoId,
+        playerVars: {
+          rel: 0,
+          playsinline: 1,
+        },
+        events: {
+          onStateChange: (event) => {
+            onPlayingChange(event.data === yt.PlayerState.PLAYING);
+          },
+        },
+      });
+    };
+
+    setup().catch(() => {
+      onPlayingChange(false);
+    });
+
+    return () => {
+      disposed = true;
+      onPlayingChange(false);
+      if (playerRef.current) {
+        playerRef.current.destroy();
+        playerRef.current = null;
+      }
+    };
+  }, [videoId, onPlayingChange]);
+
+  return <div ref={mountRef} className="h-full w-full" />;
+}
+
+function ChannelVideoCarousel({
+  channel,
+  videos,
+  isLoading,
+  isGlobalPlaying,
+  onChannelPlayingChange,
+}: {
+  channel: ChannelProfile;
+  videos: ChannelVideo[];
+  isLoading: boolean;
+  isGlobalPlaying: boolean;
+  onChannelPlayingChange: (handle: string, value: boolean) => void;
+}) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const videoIds = videos.map((video) => video.id).join(",");
+
+  useEffect(() => {
+    setActiveIndex(0);
+    setIsPlaying(false);
+    onChannelPlayingChange(channel.handle, false);
+  }, [channel.handle, onChannelPlayingChange, videoIds]);
+
+  useEffect(() => {
+    if (videos.length <= 1 || isGlobalPlaying) return;
+    const timerId = window.setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % videos.length);
+    }, AUTO_SLIDE_INTERVAL_MS);
+    return () => window.clearInterval(timerId);
+  }, [isGlobalPlaying, videos.length]);
+
+  useEffect(() => {
+    return () => {
+      onChannelPlayingChange(channel.handle, false);
+    };
+  }, [channel.handle, onChannelPlayingChange]);
+
+  const activeVideo = videos[activeIndex] ?? null;
+
+  const handlePlayingChange = useCallback(
+    (value: boolean) => {
+      setIsPlaying(value);
+      onChannelPlayingChange(channel.handle, value);
+    },
+    [channel.handle, onChannelPlayingChange]
+  );
+
+  return (
+    <Card className="bg-white border-slate-200 hover:border-cyan-300 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-100 overflow-hidden">
+      <div className="aspect-video bg-slate-100 relative overflow-hidden">
+        {activeVideo ? (
+          <>
+            <YouTubeVideoPlayer videoId={activeVideo.id} onPlayingChange={handlePlayingChange} />
+            <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/70 text-white text-xs rounded">
+              {formatDuration(activeVideo.durationIso)}
+            </div>
+          </>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm">
+            {isLoading ? "動画を取得中..." : "動画が見つかりません"}
+          </div>
+        )}
+      </div>
+
+      <CardContent className="p-4">
+        <p className="text-xs text-slate-400 mb-2">{channel.title}</p>
+        <h3 className="font-medium text-slate-700 line-clamp-2 mb-2 min-h-[3.2rem]">
+          {activeVideo?.title ?? "動画の取得待機中"}
+        </h3>
+        <div className="flex items-center gap-4 text-sm text-slate-400">
+          <span className="flex items-center gap-1">
+            <Eye className="w-4 h-4" />
+            {formatCount(activeVideo?.views ?? null)}
+          </span>
+          <span className="flex items-center gap-1">
+            <ThumbsUp className="w-4 h-4" />
+            {formatCount(activeVideo?.likes ?? null)}
+          </span>
+        </div>
+
+        {videos.length > 1 && (
+          <div className="mt-3 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-1.5">
+              {videos.map((video, index) => (
+                <button
+                  key={video.id}
+                  type="button"
+                  aria-label={`${channel.title} ${index + 1}件目`}
+                  onClick={() => {
+                    setIsPlaying(false);
+                    onChannelPlayingChange(channel.handle, false);
+                    setActiveIndex(index);
+                  }}
+                  className={`h-2 w-2 rounded-full transition-all ${
+                    index === activeIndex ? "bg-cyan-500" : "bg-slate-300 hover:bg-slate-400"
+                  }`}
+                />
+              ))}
+            </div>
+            <span className="text-[11px] text-slate-400 whitespace-nowrap">
+              {isPlaying ? "再生中: スライド停止" : "自動スライド中"}
+            </span>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 function YouTubePage() {
   const baseUrl = import.meta.env.BASE_URL || "/";
+  const apiKey = import.meta.env.VITE_YOUTUBE_API_KEY?.trim() ?? "";
+
+  const [channels, setChannels] = useState<ChannelProfile[]>(() => channelSeeds.map((seed) => fallbackProfile(seed)));
+  const [videosByHandle, setVideosByHandle] = useState<Record<string, ChannelVideo[]>>(() =>
+    Object.fromEntries(channelSeeds.map((seed) => [normalizeHandle(seed.handle), []]))
+  );
+  const [isLoading, setIsLoading] = useState(true);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [playingByHandle, setPlayingByHandle] = useState<Record<string, boolean>>({});
+
+  const isAnyVideoPlaying = useMemo(
+    () => Object.values(playingByHandle).some((value) => value),
+    [playingByHandle]
+  );
+
+  const handleChannelPlayingChange = useCallback((handle: string, value: boolean) => {
+    const normalized = normalizeHandle(handle);
+    setPlayingByHandle((prev) => {
+      if (prev[normalized] === value) return prev;
+      return {
+        ...prev,
+        [normalized]: value,
+      };
+    });
+  }, []);
+
+  useEffect(() => {
+    let disposed = false;
+
+    const loadData = async () => {
+      setIsLoading(true);
+      setApiError(null);
+
+      if (!apiKey) {
+        setChannels(channelSeeds.map((seed) => fallbackProfile(seed)));
+        setVideosByHandle(Object.fromEntries(channelSeeds.map((seed) => [normalizeHandle(seed.handle), []])));
+        setApiError("YouTube APIキーが未設定です。.env.local に VITE_YOUTUBE_API_KEY を追加してください。");
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const fetchedProfiles = await Promise.all(
+          channelSeeds.map(async (seed) => {
+            try {
+              return await fetchChannelProfile(seed, apiKey);
+            } catch {
+              return null;
+            }
+          })
+        );
+
+        const resolvedProfiles = channelSeeds.map((seed, index) => fetchedProfiles[index] ?? fallbackProfile(seed));
+
+        const fetchedVideos = await Promise.all(
+          resolvedProfiles.map(async (channel) => {
+            try {
+              return await fetchChannelVideos(channel, apiKey);
+            } catch {
+              return [];
+            }
+          })
+        );
+
+        if (disposed) return;
+
+        const nextVideosByHandle: Record<string, ChannelVideo[]> = {};
+        resolvedProfiles.forEach((channel, index) => {
+          nextVideosByHandle[normalizeHandle(channel.handle)] = fetchedVideos[index] ?? [];
+        });
+
+        setChannels(resolvedProfiles);
+        setVideosByHandle(nextVideosByHandle);
+      } catch {
+        if (disposed) return;
+        setApiError("YouTubeデータの取得に失敗しました。時間を置いて再読み込みしてください。");
+      } finally {
+        if (disposed) return;
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+
+    return () => {
+      disposed = true;
+    };
+  }, [apiKey]);
   
   return (
     <div className="min-h-screen bg-background">
@@ -136,6 +779,9 @@ function YouTubePage() {
               いつも楽しく見させていただいている、
               おすすめのYouTubeチャンネルを紹介します。
             </p>
+            {apiError && (
+              <p className="text-sm text-rose-500 mt-4">{apiError}</p>
+            )}
           </motion.div>
 
           <motion.div
@@ -149,7 +795,7 @@ function YouTubePage() {
             </h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {favoriteChannels.map((channel) => (
+              {channels.map((channel) => (
                 <motion.div
                   key={channel.id}
                   whileHover={{ scale: 1.02 }}
@@ -158,13 +804,23 @@ function YouTubePage() {
                   <Card className="bg-white border-slate-200 hover:border-red-300 transition-all duration-300 hover:shadow-xl hover:shadow-red-100 overflow-hidden">
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
-                        <div className={`w-20 h-20 rounded-xl bg-gradient-to-br ${channel.color} flex items-center justify-center text-4xl flex-shrink-0 shadow-lg`}>
-                          {channel.thumbnail}
+                        <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 shadow-lg bg-slate-100">
+                          {channel.thumbnailUrl ? (
+                            <img
+                              src={channel.thumbnailUrl}
+                              alt={channel.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className={`w-full h-full bg-gradient-to-br ${channel.color} flex items-center justify-center text-4xl`}>
+                              {channel.fallbackEmoji}
+                            </div>
+                          )}
                         </div>
                         <div className="flex-grow">
                           <div className="flex items-start justify-between mb-2">
                             <h3 className="text-lg font-bold text-slate-700 group-hover:text-red-500 transition-colors">
-                              {channel.name}
+                              {channel.title}
                             </h3>
                             <Badge className="bg-red-500 text-white">
                               <Youtube className="w-3 h-3 mr-1" />
@@ -172,16 +828,16 @@ function YouTubePage() {
                             </Badge>
                           </div>
                           <p className="text-slate-500 text-sm mb-3">
-                            {channel.description}
+                            @{normalizeHandle(channel.handle)}
                           </p>
                           <div className="flex items-center gap-4 text-sm text-slate-400">
                             <span className="flex items-center gap-1">
                               <Eye className="w-4 h-4" />
-                              {channel.subscribers === "-" ? "登録者 -" : `${channel.subscribers} 登録者`}
+                              {channel.subscriberCount !== null ? `${formatCount(channel.subscriberCount)} 登録者` : "登録者 -"}
                             </span>
                             <span className="flex items-center gap-1">
                               <Play className="w-4 h-4" />
-                              {channel.videos > 0 ? `${channel.videos} 本の動画` : "動画数 -"}
+                              {channel.videoCount !== null ? `${formatCount(channel.videoCount)} 本の動画` : "動画数 -"}
                             </span>
                           </div>
                         </div>
@@ -204,42 +860,19 @@ function YouTubePage() {
           <motion.div variants={containerVariants} initial="hidden" animate="visible">
             <h2 className="text-xl font-bold text-slate-700 mb-6 flex items-center gap-2">
               <ThumbsUp className="w-5 h-5 text-cyan-500" />
-              おすすめ動画
+              チャンネル別の最新動画
             </h2>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {featuredVideos.map((video) => (
-                <motion.div key={video.id} variants={itemVariants}>
-                  <Card className="group bg-white border-slate-200 hover:border-cyan-300 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-100 overflow-hidden cursor-pointer">
-                    <div className="h-40 bg-gradient-to-br from-slate-100 to-slate-200 relative overflow-hidden flex items-center justify-center">
-                      <span className="text-5xl">{video.thumbnail}</span>
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                      <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/70 text-white text-xs rounded">
-                        {video.duration}
-                      </div>
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <div className="w-14 h-14 rounded-full bg-red-500 flex items-center justify-center shadow-lg">
-                          <Play className="w-6 h-6 text-white ml-1" />
-                        </div>
-                      </div>
-                    </div>
-
-                    <CardContent className="p-4">
-                      <h3 className="font-medium text-slate-700 line-clamp-2 mb-2 group-hover:text-cyan-600 transition-colors">
-                        {video.title}
-                      </h3>
-                      <div className="flex items-center gap-4 text-sm text-slate-400">
-                        <span className="flex items-center gap-1">
-                          <Eye className="w-4 h-4" />
-                          {video.views}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <ThumbsUp className="w-4 h-4" />
-                          {video.likes}
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
+              {channels.map((channel) => (
+                <motion.div key={channel.id} variants={itemVariants}>
+                  <ChannelVideoCarousel
+                    channel={channel}
+                    videos={videosByHandle[normalizeHandle(channel.handle)] ?? []}
+                    isLoading={isLoading}
+                    isGlobalPlaying={isAnyVideoPlaying}
+                    onChannelPlayingChange={handleChannelPlayingChange}
+                  />
                 </motion.div>
               ))}
             </div>
