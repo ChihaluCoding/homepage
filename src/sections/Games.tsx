@@ -1,6 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { useEffect, useState } from "react";
 import { Gamepad2, Download, Star, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +13,31 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+
+// カウントアップアニメーションコンポーネント
+function CountUp({ end, duration = 2 }: { end: number; duration?: number }) {
+  const [count, setCount] = useState(0);
+  
+  useEffect(() => {
+    let startTime: number;
+    let animationFrame: number;
+    
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / (duration * 1000), 1);
+      setCount(Math.floor(progress * end));
+      
+      if (progress < 1) {
+        animationFrame = requestAnimationFrame(animate);
+      }
+    };
+    
+    animationFrame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationFrame);
+  }, [end, duration]);
+  
+  return <span>{count.toLocaleString()}</span>;
+}
 
 const games = [
   {
@@ -104,6 +130,42 @@ const itemVariants = {
   },
 };
 
+// 3Dカードコンポーネント
+function TiltCard({ children, className }: { children: React.ReactNode; className?: string }) {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  
+  const mouseX = useSpring(x, { stiffness: 500, damping: 100 });
+  const mouseY = useSpring(y, { stiffness: 500, damping: 100 });
+  
+  const rotateX = useTransform(mouseY, [-0.5, 0.5], ["8deg", "-8deg"]);
+  const rotateY = useTransform(mouseX, [-0.5, 0.5], ["-8deg", "8deg"]);
+  
+  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    x.set((e.clientX - centerX) / rect.width);
+    y.set((e.clientY - centerY) / rect.height);
+  }
+  
+  function handleMouseLeave() {
+    x.set(0);
+    y.set(0);
+  }
+  
+  return (
+    <motion.div
+      className={className}
+      style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 export function Games() {
   return (
     <section id="games" className="py-24 relative overflow-hidden bg-gradient-to-b from-white via-cyan-50/30 to-white">
@@ -149,65 +211,146 @@ export function Games() {
           viewport={{ once: true }}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
         >
-          {games.map((game) => (
+          {games.map((game, index) => (
             <motion.div key={game.id} variants={itemVariants}>
-              <Card className="group bg-white border-slate-200 hover:border-cyan-300 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-100 overflow-hidden">
-                {/* Game Image/Icon */}
-                <div className={`h-40 bg-gradient-to-br ${game.color} relative overflow-hidden`}>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-6xl">{game.image}</span>
-                  </div>
-                  <div className="absolute inset-0 bg-black/10" />
-                  <div className="absolute top-3 right-3">
-                    <Badge variant="secondary" className="bg-white/80 text-slate-700 backdrop-blur-sm">
-                      {game.category}
-                    </Badge>
-                  </div>
-                </div>
-
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-xl text-slate-700 group-hover:text-cyan-600 transition-colors">
-                    {game.title}
-                  </CardTitle>
-                  <CardDescription className="line-clamp-2 text-slate-500">
-                    {game.description}
-                  </CardDescription>
-                </CardHeader>
-
-                <CardContent className="pb-3">
-                  <div className="flex flex-wrap gap-2">
-                    {game.tags.map((tag) => (
-                      <Badge
-                        key={tag}
-                        variant="outline"
-                        className="text-xs border-cyan-200 text-cyan-600"
+              <TiltCard className="h-full">
+                <Card className="group bg-white border-slate-200 hover:border-cyan-300 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-100 overflow-hidden h-full">
+                  {/* Game Image/Icon */}
+                  <div className={`h-40 bg-gradient-to-br ${game.color} relative overflow-hidden`}>
+                    <motion.div 
+                      className="absolute inset-0 flex items-center justify-center"
+                      animate={{ 
+                        y: [0, -5, 0],
+                        rotate: [0, 2, -2, 0]
+                      }}
+                      transition={{
+                        duration: 3 + index * 0.2,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                    >
+                      <span className="text-6xl drop-shadow-lg">{game.image}</span>
+                    </motion.div>
+                    <motion.div 
+                      className="absolute inset-0 bg-black/10"
+                      whileHover={{ opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                    />
+                    <div className="absolute top-3 right-3">
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.8, x: 20 }}
+                        whileInView={{ opacity: 1, scale: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.3 + index * 0.1 }}
                       >
-                        {tag}
-                      </Badge>
-                    ))}
+                        <Badge variant="secondary" className="bg-white/80 text-slate-700 backdrop-blur-sm">
+                          {game.category}
+                        </Badge>
+                      </motion.div>
+                    </div>
+                    {/* 光の反射効果 */}
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -skew-x-12"
+                      initial={{ x: "-200%" }}
+                      whileHover={{ x: "200%" }}
+                      transition={{ duration: 0.8, ease: "easeInOut" }}
+                    />
                   </div>
-                </CardContent>
 
-                <CardFooter className="flex items-center justify-between pt-3 border-t border-slate-100">
-                  <div className="flex items-center gap-4 text-sm text-slate-500">
-                    <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-                      <span>{game.rating}</span>
+                  <CardHeader className="pb-3">
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: 0.2 }}
+                    >
+                      <CardTitle className="text-xl text-slate-700 group-hover:text-cyan-600 transition-colors">
+                        {game.title}
+                      </CardTitle>
+                    </motion.div>
+                    <CardDescription className="line-clamp-2 text-slate-500">
+                      {game.description}
+                    </CardDescription>
+                  </CardHeader>
+
+                  <CardContent className="pb-3">
+                    <motion.div 
+                      className="flex flex-wrap gap-2"
+                      initial="hidden"
+                      whileInView="visible"
+                      viewport={{ once: true }}
+                      variants={{
+                        hidden: {},
+                        visible: { transition: { staggerChildren: 0.05 } }
+                      }}
+                    >
+                      {game.tags.map((tag, tagIndex) => (
+                        <motion.div
+                          key={tag}
+                          variants={{
+                            hidden: { opacity: 0, scale: 0.8 },
+                            visible: { opacity: 1, scale: 1 }
+                          }}
+                          transition={{ delay: tagIndex * 0.05 }}
+                          whileHover={{ scale: 1.1, y: -2 }}
+                        >
+                          <Badge
+                            variant="outline"
+                            className="text-xs border-cyan-200 text-cyan-600 hover:bg-cyan-50 cursor-default"
+                          >
+                            {tag}
+                          </Badge>
+                        </motion.div>
+                      ))}
+                    </motion.div>
+                  </CardContent>
+
+                  <CardFooter className="flex items-center justify-between pt-3 border-t border-slate-100">
+                    <div className="flex items-center gap-4 text-sm text-slate-500">
+                      <motion.div 
+                        className="flex items-center gap-1"
+                        whileHover={{ scale: 1.1 }}
+                        transition={{ type: "spring", stiffness: 400 }}
+                      >
+                        <motion.div
+                          animate={{ rotate: [0, 15, -15, 0] }}
+                          transition={{ duration: 0.5, delay: index * 0.2 }}
+                        >
+                          <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                        </motion.div>
+                        <span>{game.rating}</span>
+                      </motion.div>
+                      <motion.div 
+                        className="flex items-center gap-1"
+                        initial={{ opacity: 0 }}
+                        whileInView={{ opacity: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.5 + index * 0.1 }}
+                      >
+                        <motion.div
+                          animate={{ y: [0, -2, 0] }}
+                          transition={{ duration: 1, repeat: Infinity, delay: index * 0.1 }}
+                        >
+                          <Download className="w-4 h-4 text-cyan-500" />
+                        </motion.div>
+                        <CountUp end={game.downloads} duration={2} />
+                      </motion.div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Download className="w-4 h-4 text-cyan-500" />
-                      <span>{game.downloads.toLocaleString()}</span>
-                    </div>
-                  </div>
-                  <Button
-                    size="sm"
-                    className="bg-cyan-100 text-cyan-600 hover:bg-cyan-500 hover:text-white transition-all"
-                  >
-                    <ExternalLink className="w-4 h-4 mr-1" />
-                    詳細
-                  </Button>
-                </CardFooter>
-              </Card>
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Button
+                        size="sm"
+                        className="bg-cyan-100 text-cyan-600 hover:bg-cyan-500 hover:text-white transition-all"
+                      >
+                        <ExternalLink className="w-4 h-4 mr-1" />
+                        詳細
+                      </Button>
+                    </motion.div>
+                  </CardFooter>
+                </Card>
+              </TiltCard>
             </motion.div>
           ))}
         </motion.div>
@@ -220,14 +363,32 @@ export function Games() {
           transition={{ delay: 0.4 }}
           className="text-center mt-12"
         >
-          <Button
-            variant="outline"
-            size="lg"
-            className="border-cyan-300 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-400"
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            <Gamepad2 className="w-5 h-5 mr-2" />
-            すべてのゲームを見る
-          </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              className="border-cyan-300 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-400 group relative overflow-hidden"
+            >
+              <motion.span
+                className="absolute inset-0 bg-cyan-100"
+                initial={{ x: "-100%" }}
+                whileHover={{ x: 0 }}
+                transition={{ duration: 0.3 }}
+              />
+              <span className="relative flex items-center">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                >
+                  <Gamepad2 className="w-5 h-5 mr-2" />
+                </motion.div>
+                すべてのゲームを見る
+              </span>
+            </Button>
+          </motion.div>
         </motion.div>
       </div>
     </section>

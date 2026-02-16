@@ -1,7 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Wrench, Download, ExternalLink, Zap, Check } from "lucide-react";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { useEffect, useState } from "react";
+import { Wrench, Download, ExternalLink, Zap, Check, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -12,6 +13,145 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+
+// カウントアップアニメーション
+function CountUp({ end, duration = 2 }: { end: number; duration?: number }) {
+  const [count, setCount] = useState(0);
+  
+  useEffect(() => {
+    let startTime: number;
+    let animationFrame: number;
+    
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / (duration * 1000), 1);
+      setCount(Math.floor(progress * end));
+      
+      if (progress < 1) {
+        animationFrame = requestAnimationFrame(animate);
+      }
+    };
+    
+    animationFrame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationFrame);
+  }, [end, duration]);
+  
+  return <span>{count.toLocaleString()}</span>;
+}
+
+// 3Dチルトカード
+function TiltCard({ children, className }: { children: React.ReactNode; className?: string }) {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  
+  const mouseX = useSpring(x, { stiffness: 400, damping: 30 });
+  const mouseY = useSpring(y, { stiffness: 400, damping: 30 });
+  
+  const rotateX = useTransform(mouseY, [-0.5, 0.5], ["5deg", "-5deg"]);
+  const rotateY = useTransform(mouseX, [-0.5, 0.5], ["-5deg", "5deg"]);
+  const glowX = useTransform(mouseX, [-0.5, 0.5], ["0%", "100%"]);
+  const glowY = useTransform(mouseY, [-0.5, 0.5], ["0%", "100%"]);
+  
+  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    x.set((e.clientX - centerX) / rect.width);
+    y.set((e.clientY - centerY) / rect.height);
+  }
+  
+  function handleMouseLeave() {
+    x.set(0);
+    y.set(0);
+  }
+  
+  return (
+    <motion.div
+      className={`relative ${className}`}
+      style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      <motion.div
+        className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+        style={{
+          background: `radial-gradient(circle at ${glowX.get()} ${glowY.get()}, rgba(34, 211, 238, 0.15), transparent 50%)`,
+        }}
+      />
+      {children}
+    </motion.div>
+  );
+}
+
+// アイコンアニメーション
+function AnimatedIcon({ icon, color, delay = 0 }: { icon: string; color: string; delay?: number }) {
+  return (
+    <motion.div
+      className={`w-14 h-14 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center text-3xl shadow-lg relative overflow-hidden`}
+      initial={{ scale: 0, rotate: -180 }}
+      whileInView={{ scale: 1, rotate: 0 }}
+      viewport={{ once: true }}
+      transition={{ 
+        type: "spring", 
+        stiffness: 260, 
+        damping: 20, 
+        delay 
+      }}
+      whileHover={{ 
+        scale: 1.1, 
+        rotate: [0, -10, 10, 0],
+        transition: { duration: 0.5 }
+      }}
+    >
+      <motion.span
+        animate={{ 
+          y: [0, -3, 0],
+        }}
+        transition={{ 
+          duration: 2, 
+          repeat: Infinity, 
+          ease: "easeInOut",
+          delay: delay * 2
+        }}
+      >
+        {icon}
+      </motion.span>
+      {/* 光のエフェクト */}
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
+        initial={{ x: "-100%" }}
+        whileHover={{ x: "100%" }}
+        transition={{ duration: 0.5 }}
+      />
+    </motion.div>
+  );
+}
+
+// NEWバッジのパルスアニメーション
+function NewBadge() {
+  return (
+    <motion.div
+      initial={{ scale: 0 }}
+      animate={{ scale: 1 }}
+      transition={{ type: "spring", stiffness: 500, damping: 15 }}
+    >
+      <Badge className="bg-cyan-500 text-white relative overflow-hidden">
+        <motion.div
+          className="absolute inset-0 bg-white/30"
+          animate={{ x: ["-100%", "100%"] }}
+          transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+        />
+        <motion.div
+          animate={{ rotate: [0, 15, -15, 0] }}
+          transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
+        >
+          <Zap className="w-3 h-3 mr-1 relative z-10" />
+        </motion.div>
+        <span className="relative z-10">NEW</span>
+      </Badge>
+    </motion.div>
+  );
+}
 
 const tools = [
   {
@@ -149,57 +289,119 @@ export function Tools() {
           viewport={{ once: true }}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
         >
-          {tools.map((tool) => (
+          {tools.map((tool, index) => (
             <motion.div key={tool.id} variants={itemVariants}>
-              <Card className="group bg-white border-slate-200 hover:border-cyan-300 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-100 h-full flex flex-col">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${tool.color} flex items-center justify-center text-3xl shadow-lg`}>
-                      {tool.icon}
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                      {tool.isNew && (
-                        <Badge className="bg-cyan-500 text-white">
-                          <Zap className="w-3 h-3 mr-1" />
-                          NEW
-                        </Badge>
-                      )}
-                      <Badge variant="outline" className="border-slate-200 text-slate-500">
-                        {tool.category}
-                      </Badge>
-                    </div>
-                  </div>
-                  <CardTitle className="text-xl text-slate-700 group-hover:text-cyan-600 transition-colors">
-                    {tool.title}
-                  </CardTitle>
-                  <CardDescription className="text-slate-500">{tool.description}</CardDescription>
-                </CardHeader>
-
-                <CardContent className="pb-3 flex-grow">
-                  <div className="space-y-2">
-                    {tool.features.map((feature) => (
-                      <div key={feature} className="flex items-center gap-2 text-sm text-slate-500">
-                        <Check className="w-4 h-4 text-cyan-500" />
-                        <span>{feature}</span>
+              <TiltCard className="h-full group">
+                <Card className="bg-white border-slate-200 hover:border-cyan-300 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-100 h-full flex flex-col relative overflow-hidden">
+                  {/* 背景の輝き */}
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-br from-cyan-50/0 to-cyan-100/0 group-hover:from-cyan-50/50 group-hover:to-cyan-100/30 transition-all duration-500"
+                  />
+                  
+                  <CardHeader className="pb-3 relative z-10">
+                    <div className="flex items-start justify-between mb-3">
+                      <AnimatedIcon icon={tool.icon} color={tool.color} delay={index * 0.1} />
+                      <div className="flex flex-col items-end gap-2">
+                        {tool.isNew && <NewBadge />}
+                        <motion.div
+                          initial={{ opacity: 0, x: 20 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: 0.3 + index * 0.1 }}
+                        >
+                          <Badge variant="outline" className="border-slate-200 text-slate-500">
+                            {tool.category}
+                          </Badge>
+                        </motion.div>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
+                    </div>
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: 0.2 + index * 0.05 }}
+                    >
+                      <CardTitle className="text-xl text-slate-700 group-hover:text-cyan-600 transition-colors">
+                        {tool.title}
+                      </CardTitle>
+                    </motion.div>
+                    <CardDescription className="text-slate-500">{tool.description}</CardDescription>
+                  </CardHeader>
 
-                <CardFooter className="flex items-center justify-between pt-3 border-t border-slate-100">
-                  <div className="flex items-center gap-1 text-sm text-slate-500">
-                    <Download className="w-4 h-4 text-cyan-500" />
-                    <span>{tool.downloads.toLocaleString()}</span>
-                  </div>
-                  <Button
-                    size="sm"
-                    className="bg-cyan-100 text-cyan-600 hover:bg-cyan-500 hover:text-white transition-all"
-                  >
-                    <ExternalLink className="w-4 h-4 mr-1" />
-                    ダウンロード
-                  </Button>
-                </CardFooter>
-              </Card>
+                  <CardContent className="pb-3 flex-grow relative z-10">
+                    <motion.div 
+                      className="space-y-2"
+                      initial="hidden"
+                      whileInView="visible"
+                      viewport={{ once: true }}
+                      variants={{
+                        hidden: {},
+                        visible: { transition: { staggerChildren: 0.08, delayChildren: 0.3 + index * 0.1 } }
+                      }}
+                    >
+                      {tool.features.map((feature) => (
+                        <motion.div 
+                          key={feature} 
+                          className="flex items-center gap-2 text-sm text-slate-500"
+                          variants={{
+                            hidden: { opacity: 0, x: -20 },
+                            visible: { opacity: 1, x: 0 }
+                          }}
+                          whileHover={{ x: 5, color: "#0891b2" }}
+                        >
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            whileInView={{ scale: 1 }}
+                            viewport={{ once: true }}
+                            transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                          >
+                            <Check className="w-4 h-4 text-cyan-500" />
+                          </motion.div>
+                          <span>{feature}</span>
+                        </motion.div>
+                      ))}
+                    </motion.div>
+                  </CardContent>
+
+                  <CardFooter className="flex items-center justify-between pt-3 border-t border-slate-100 relative z-10">
+                    <motion.div 
+                      className="flex items-center gap-1 text-sm text-slate-500"
+                      initial={{ opacity: 0 }}
+                      whileInView={{ opacity: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: 0.5 + index * 0.1 }}
+                    >
+                      <motion.div
+                        animate={{ y: [0, -3, 0] }}
+                        transition={{ duration: 1.5, repeat: Infinity, delay: index * 0.1 }}
+                      >
+                        <Download className="w-4 h-4 text-cyan-500" />
+                      </motion.div>
+                      <CountUp end={tool.downloads} duration={2} />
+                    </motion.div>
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Button
+                        size="sm"
+                        className="bg-cyan-100 text-cyan-600 hover:bg-cyan-500 hover:text-white transition-all relative overflow-hidden group/btn"
+                      >
+                        <motion.span
+                          className="absolute inset-0 bg-cyan-500"
+                          initial={{ x: "-100%" }}
+                          whileHover={{ x: 0 }}
+                          transition={{ duration: 0.3 }}
+                        />
+                        <span className="relative z-10 flex items-center">
+                          <ExternalLink className="w-4 h-4 mr-1" />
+                          ダウンロード
+                        </span>
+                      </Button>
+                    </motion.div>
+                  </CardFooter>
+                </Card>
+              </TiltCard>
             </motion.div>
           ))}
         </motion.div>
@@ -212,14 +414,32 @@ export function Tools() {
           transition={{ delay: 0.4 }}
           className="text-center mt-12"
         >
-          <Button
-            variant="outline"
-            size="lg"
-            className="border-cyan-300 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-400"
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            <Wrench className="w-5 h-5 mr-2" />
-            すべてのツールを見る
-          </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              className="border-cyan-300 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-400 group relative overflow-hidden"
+            >
+              <motion.span
+                className="absolute inset-0 bg-cyan-100"
+                initial={{ x: "-100%" }}
+                whileHover={{ x: 0 }}
+                transition={{ duration: 0.3 }}
+              />
+              <span className="relative flex items-center">
+                <motion.div
+                  animate={{ rotate: [0, 15, -15, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+                >
+                  <Wrench className="w-5 h-5 mr-2" />
+                </motion.div>
+                すべてのツールを見る
+              </span>
+            </Button>
+          </motion.div>
         </motion.div>
       </div>
     </section>
