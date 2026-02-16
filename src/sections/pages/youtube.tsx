@@ -246,11 +246,7 @@ function pickThumbnailUrl(thumbnails: YouTubeThumbnailSet | undefined): string {
 
 function formatCount(value: number | null): string {
   if (value === null) return "-";
-  return new Intl.NumberFormat("ja-JP", {
-    notation: "compact",
-    compactDisplay: "short",
-    maximumFractionDigits: 1,
-  }).format(value);
+  return new Intl.NumberFormat("ja-JP").format(value);
 }
 
 function formatDuration(value: string): string {
