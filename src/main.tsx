@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Youtube, Twitter, Github, ChevronRight, MapPin, CalendarDays } from "lucide-react";
@@ -37,6 +37,31 @@ function AnimatedText({ text, className, delay = 0 }: { text: string; className?
 
 const baseUrl = import.meta.env.BASE_URL || "/";
 const youtubeChannelUrl = "https://www.youtube.com/@%E3%81%A1%E3%81%AF%E3%82%8B_Dev";
+const youtubeApiBase = "https://www.googleapis.com/youtube/v3";
+const liveStatusPollMs = 120000;
+const youtubeChannelHandle = "ちはる_Dev";
+
+type YouTubeChannelLookupResponse = {
+  items?: Array<{
+    id?: string;
+  }>;
+};
+
+type YouTubeLiveSearchResponse = {
+  items?: Array<{
+    id?: {
+      videoId?: string;
+    };
+  }>;
+};
+
+function buildYouTubeApiUrl(endpoint: string, params: Record<string, string | number>): string {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    query.set(key, String(value));
+  });
+  return `${youtubeApiBase}/${endpoint}?${query.toString()}`;
+}
 
 const profileSocialLinks = [
   { name: "YouTube", icon: Youtube, href: youtubeChannelUrl, color: "from-red-500 to-rose-500" },
@@ -46,6 +71,80 @@ const profileSocialLinks = [
 
 function HomePage() {
   const [isAvatarOpen, setIsAvatarOpen] = useState(false);
+  const [isYouTubeLive, setIsYouTubeLive] = useState(false);
+  const youtubeApiKey = import.meta.env.VITE_YOUTUBE_API_KEY?.trim() ?? "";
+
+  useEffect(() => {
+    let disposed = false;
+    let channelIdCache: string | null = null;
+
+    const updateLiveStatus = async () => {
+      if (!youtubeApiKey) {
+        if (!disposed) {
+          setIsYouTubeLive(false);
+        }
+        return;
+      }
+
+      try {
+        if (!channelIdCache) {
+          const channelLookupUrl = buildYouTubeApiUrl("channels", {
+            part: "id",
+            forHandle: youtubeChannelHandle,
+            key: youtubeApiKey,
+          });
+
+          const channelLookupResponse = await fetch(channelLookupUrl);
+          if (!channelLookupResponse.ok) {
+            throw new Error(`YouTube API error: ${channelLookupResponse.status}`);
+          }
+
+          const channelLookupData = (await channelLookupResponse.json()) as YouTubeChannelLookupResponse;
+          channelIdCache = channelLookupData.items?.[0]?.id ?? null;
+        }
+
+        if (!channelIdCache) {
+          if (!disposed) {
+            setIsYouTubeLive(false);
+          }
+          return;
+        }
+
+        const liveSearchUrl = buildYouTubeApiUrl("search", {
+          part: "id",
+          channelId: channelIdCache,
+          eventType: "live",
+          type: "video",
+          maxResults: 1,
+          key: youtubeApiKey,
+        });
+
+        const liveSearchResponse = await fetch(liveSearchUrl);
+        if (!liveSearchResponse.ok) {
+          throw new Error(`YouTube API error: ${liveSearchResponse.status}`);
+        }
+
+        const liveSearchData = (await liveSearchResponse.json()) as YouTubeLiveSearchResponse;
+        const isLive = (liveSearchData.items?.length ?? 0) > 0;
+
+        if (!disposed) {
+          setIsYouTubeLive(isLive);
+        }
+      } catch {
+        if (!disposed) {
+          setIsYouTubeLive(false);
+        }
+      }
+    };
+
+    updateLiveStatus();
+    const timerId = window.setInterval(updateLiveStatus, liveStatusPollMs);
+
+    return () => {
+      disposed = true;
+      window.clearInterval(timerId);
+    };
+  }, [youtubeApiKey]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -129,7 +228,7 @@ function HomePage() {
                 <motion.h1
                   className="relative text-5xl sm:text-6xl lg:text-7xl font-black mb-6 tracking-tight leading-[1.05] break-words"
                 >
-                  <AnimatedText text="Chihalu" className="text-slate-700" delay={0.4} />
+                  <AnimatedText text="ちるにゃ" className="text-slate-700" delay={0.4} />
                   <br className="sm:hidden" />
                   <AnimatedText text="Studio" className="bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-500 bg-clip-text text-transparent sm:ml-1" delay={0.6} />
                 </motion.h1>
@@ -248,14 +347,15 @@ function HomePage() {
                           </button>
                         </motion.div>
                         <motion.div 
-                          className="absolute -bottom-2 -right-2 w-8 h-8 bg-emerald-400 rounded-full border-4 border-white flex items-center justify-center"
-                          animate={{ scale: [1, 1.2, 1] }}
-                          transition={{ duration: 2, repeat: Infinity }}
+                          className={`absolute -bottom-2 -right-2 w-8 h-8 rounded-full border-4 border-white flex items-center justify-center ${isYouTubeLive ? "bg-red-500" : "bg-slate-300"}`}
+                          animate={isYouTubeLive ? { scale: [1, 1.12, 1] } : { scale: 1 }}
+                          transition={isYouTubeLive ? { duration: 1.2, repeat: Infinity } : { duration: 0 }}
+                          title={isYouTubeLive ? "YouTube Live配信中" : "YouTube Liveオフライン"}
                         >
                           <motion.div 
                             className="w-2 h-2 bg-white rounded-full"
-                            animate={{ opacity: [1, 0.5, 1] }}
-                            transition={{ duration: 1.5, repeat: Infinity }}
+                            animate={isYouTubeLive ? { opacity: [1, 0.55, 1] } : { opacity: 0.9 }}
+                            transition={isYouTubeLive ? { duration: 1.2, repeat: Infinity } : { duration: 0 }}
                           />
                         </motion.div>
                       </motion.div>
@@ -266,7 +366,7 @@ function HomePage() {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 1.3 }}
                         >
-                          Chihalu
+                          ちるにゃ
                         </motion.h3>
                         <motion.div 
                           className="flex items-center gap-2 mt-2 text-sm text-slate-400"
@@ -305,7 +405,7 @@ function HomePage() {
                       animate={{ opacity: 1 }}
                       transition={{ delay: 1.6 }}
                     >
-                      {"こんにちは！Chihaluです。独学でプログラミング/3Dモデリングを始めました。よろしくお願いします！".split("").map((char, index) => (
+                      {"こんにちは！ちるにゃです。独学でプログラミング/3Dモデリングを始めました。よろしくお願いします！".split("").map((char, index) => (
                         <motion.span
                           key={index}
                           initial={{ opacity: 0 }}
