@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom/client'
-import { motion } from "framer-motion";
-import { Package, ExternalLink, Play, ChevronLeft, Gamepad2, Wrench, ArrowUpDown } from "lucide-react";
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { Package, ExternalLink, Play, ChevronLeft, Gamepad2, Wrench, ArrowUpDown, Sparkles, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -60,25 +60,112 @@ const EMPTY_DATA: WorksData = {
 
 type SortType = 'default' | 'price-asc' | 'price-desc';
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 },
-  },
-};
+// アニメーションコンポーネント
+function AnimatedText({ text, delay = 0 }: { text: string; delay?: number }) {
+  return (
+    <>
+      {text.split("").map((char, index) => (
+        <motion.span
+          key={index}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: delay + index * 0.03, duration: 0.3 }}
+          style={{ display: "inline-block" }}
+        >
+          {char === " " ? "\u00A0" : char}
+        </motion.span>
+      ))}
+    </>
+  );
+}
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.6,
-      ease: [0.16, 1, 0.3, 1] as const,
-    },
-  },
-};
+// 3Dチルトカード
+function TiltCard({ children, className }: { children: React.ReactNode; className?: string }) {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  
+  const mouseX = useSpring(x, { stiffness: 400, damping: 30 });
+  const mouseY = useSpring(y, { stiffness: 400, damping: 30 });
+  
+  const rotateX = useTransform(mouseY, [-0.5, 0.5], ["6deg", "-6deg"]);
+  const rotateY = useTransform(mouseX, [-0.5, 0.5], ["-6deg", "6deg"]);
+  
+  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    x.set((e.clientX - centerX) / rect.width);
+    y.set((e.clientY - centerY) / rect.height);
+  }
+  
+  function handleMouseLeave() {
+    x.set(0);
+    y.set(0);
+  }
+  
+  return (
+    <motion.div
+      className={className}
+      style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+// アニメーションアイコン
+function AnimatedIcon({ icon, color, delay = 0 }: { icon: string; color: string; delay?: number }) {
+  return (
+    <motion.div
+      className={`w-14 h-14 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center text-3xl shadow-lg relative overflow-hidden`}
+      initial={{ scale: 0, rotate: -180 }}
+      animate={{ scale: 1, rotate: 0 }}
+      transition={{ type: "spring", stiffness: 260, damping: 20, delay }}
+      whileHover={{ scale: 1.1, rotate: [0, -10, 10, 0] }}
+    >
+      <motion.span
+        animate={{ y: [0, -3, 0] }}
+        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: delay * 2 }}
+      >
+        {icon}
+      </motion.span>
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
+        initial={{ x: "-100%" }}
+        whileHover={{ x: "100%" }}
+        transition={{ duration: 0.5 }}
+      />
+    </motion.div>
+  );
+}
+
+// NEWバッジ
+function NewBadge() {
+  return (
+    <motion.div
+      initial={{ scale: 0 }}
+      animate={{ scale: 1 }}
+      transition={{ type: "spring", stiffness: 500, damping: 15 }}
+    >
+      <Badge className="bg-cyan-500 text-white relative overflow-hidden">
+        <motion.div
+          className="absolute inset-0 bg-white/30"
+          animate={{ x: ["-100%", "100%"] }}
+          transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+        />
+        <motion.div
+          animate={{ rotate: [0, 15, -15, 0] }}
+          transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
+        >
+          <Zap className="w-3 h-3 mr-1 relative z-10" />
+        </motion.div>
+        <span className="relative z-10">NEW</span>
+      </Badge>
+    </motion.div>
+  );
+}
 
 const IMAGE_PATTERN = /\.(png|jpe?g|webp|gif|bmp|svg|avif)(\?.*)?$/i;
 
@@ -204,15 +291,24 @@ function WorkDetailDialog({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-center gap-3 mb-2">
-            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${work.color} flex items-center justify-center text-2xl`}>
+          <motion.div 
+            className="flex items-center gap-3 mb-2"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 300 }}
+          >
+            <motion.div 
+              className={`w-12 h-12 rounded-xl bg-gradient-to-br ${work.color} flex items-center justify-center text-2xl`}
+              whileHover={{ rotate: 360, scale: 1.1 }}
+              transition={{ duration: 0.5 }}
+            >
               {type === 'game' ? (work as GameWork).image : (work as ToolLikeWork).icon}
-            </div>
+            </motion.div>
             <div>
               <DialogTitle className="text-2xl">{work.title}</DialogTitle>
               <DialogDescription>{work.category}</DialogDescription>
             </div>
-          </div>
+          </motion.div>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
@@ -223,44 +319,100 @@ function WorkDetailDialog({
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4">
-            <p className="text-slate-600 leading-relaxed">{work.description}</p>
+            <motion.p 
+              className="text-slate-600 leading-relaxed"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.1 }}
+            >
+              {work.description}
+            </motion.p>
 
             {type === 'game' && (
-              <div className="flex flex-wrap gap-2">
-                {(work as GameWork).tags.map((tag) => (
-                  <Badge key={tag} variant="outline" className="border-cyan-200 text-cyan-600">
-                    {tag}
-                  </Badge>
+              <motion.div 
+                className="flex flex-wrap gap-2"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                {(work as GameWork).tags.map((tag, index) => (
+                  <motion.div
+                    key={tag}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.2 + index * 0.05 }}
+                    whileHover={{ scale: 1.1 }}
+                  >
+                    <Badge variant="outline" className="border-cyan-200 text-cyan-600">
+                      {tag}
+                    </Badge>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             )}
 
             {type === 'tool' && (
-              <div className="space-y-2">
+              <motion.div 
+                className="space-y-2"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+              >
                 <h4 className="font-medium text-slate-700">主な機能</h4>
-                {(work as ToolLikeWork).features.map((feature) => (
-                  <div key={feature} className="flex items-center gap-2 text-sm text-slate-600">
-                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-500" />
+                {(work as ToolLikeWork).features.map((feature, index) => (
+                  <motion.div 
+                    key={feature} 
+                    className="flex items-center gap-2 text-sm text-slate-600"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2 + index * 0.05 }}
+                  >
+                    <motion.span 
+                      className="w-1.5 h-1.5 rounded-full bg-cyan-500"
+                      animate={{ scale: [1, 1.5, 1] }}
+                      transition={{ duration: 1, repeat: Infinity, delay: index * 0.1 }}
+                    />
                     {feature}
-                  </div>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             )}
 
-            <div className="flex items-center gap-4 text-sm text-slate-500 pt-4 border-t">
-              <span className="font-bold text-cyan-600 text-base">
+            <motion.div 
+              className="flex items-center gap-4 text-sm text-slate-500 pt-4 border-t"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              <motion.span 
+                className="font-bold text-cyan-600 text-base"
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
                 {work.price === 0 ? "無料" : `¥${work.price.toLocaleString()}`}
-              </span>
-            </div>
+              </motion.span>
+            </motion.div>
           </TabsContent>
 
           <TabsContent value="media" className="space-y-6">
             {trailerUrls.length > 0 && (
-              <div className="space-y-3">
+              <motion.div 
+                className="space-y-3"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+              >
                 <h4 className="font-medium text-slate-700">YouTube動画</h4>
                 <div className="space-y-4">
                   {trailerUrls.map((url, index) => (
-                    <div key={`${url}-${index}`} className="aspect-video bg-slate-100 rounded-lg overflow-hidden">
+                    <motion.div 
+                      key={`${url}-${index}`} 
+                      className="aspect-video bg-slate-100 rounded-lg overflow-hidden"
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.1 + index * 0.1 }}
+                      whileHover={{ scale: 1.02 }}
+                    >
                       <iframe
                         src={url}
                         title={`${work.title} Trailer ${index + 1}`}
@@ -268,18 +420,30 @@ function WorkDetailDialog({
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
                       />
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {screenshots.length > 0 && (
-              <div className="space-y-2">
+              <motion.div 
+                className="space-y-2"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
                 <h4 className="font-medium text-slate-700">スクリーンショット</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                   {screenshots.map((shot, index) => (
-                    <div key={`${shot}-${index}`} className="aspect-video bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg overflow-hidden flex items-center justify-center">
+                    <motion.div 
+                      key={`${shot}-${index}`} 
+                      className="aspect-video bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg overflow-hidden flex items-center justify-center cursor-pointer"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.2 + index * 0.05 }}
+                      whileHover={{ scale: 1.05, y: -5 }}
+                    >
                       {isImageValue(shot) ? (
                         <img
                           src={resolveMediaSrc(baseUrl, shot)}
@@ -289,10 +453,10 @@ function WorkDetailDialog({
                       ) : (
                         <span className="text-4xl">{shot}</span>
                       )}
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {trailerUrls.length === 0 && screenshots.length === 0 && (
@@ -301,10 +465,21 @@ function WorkDetailDialog({
           </TabsContent>
 
           <TabsContent value="download" className="space-y-4">
-            <div className="bg-gradient-to-br from-cyan-50 to-sky-50 border border-cyan-200 rounded-lg p-6 text-center">
+            <motion.div 
+              className="bg-gradient-to-br from-cyan-50 to-sky-50 border border-cyan-200 rounded-lg p-6 text-center"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.1 }}
+            >
               {isInDevelopment ? (
                 <>
-                  <h4 className="text-lg font-bold text-slate-700 mb-2">{work.title}</h4>
+                  <motion.h4 
+                    className="text-lg font-bold text-slate-700 mb-2"
+                    animate={{ opacity: [0.5, 1, 0.5] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  >
+                    {work.title}
+                  </motion.h4>
                   <p className="text-slate-500">開発中です</p>
                 </>
               ) : (
@@ -315,15 +490,32 @@ function WorkDetailDialog({
                   <p className="text-slate-500 mb-4">
                     BOOTHにて配布しています。下のボタンからダウンロードページへ移動できます。
                   </p>
-                  <a href={work.boothUrl} target="_blank" rel="noopener noreferrer">
-                    <Button size="lg" className="bg-gradient-to-r from-cyan-500 to-sky-500 hover:from-cyan-600 hover:to-sky-600 text-white">
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      BOOTHでダウンロード
+                  <motion.a 
+                    href={work.boothUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Button 
+                      size="lg" 
+                      className="bg-gradient-to-r from-cyan-500 to-sky-500 hover:from-cyan-600 hover:to-sky-600 text-white relative overflow-hidden group"
+                    >
+                      <motion.span
+                        className="absolute inset-0 bg-white/20"
+                        initial={{ x: "-100%", skewX: -20 }}
+                        whileHover={{ x: "100%" }}
+                        transition={{ duration: 0.5 }}
+                      />
+                      <span className="relative flex items-center">
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        BOOTHでダウンロード
+                      </span>
                     </Button>
-                  </a>
+                  </motion.a>
                 </>
               )}
-            </div>
+            </motion.div>
             {!isInDevelopment && (
               <p className="text-xs text-slate-400 text-center">
                 ※BOOTHのアカウントが必要な場合があります
@@ -338,11 +530,42 @@ function WorkDetailDialog({
 
 function EmptyProductsState() {
   return (
-    <div className="flex min-h-[260px] items-center justify-center rounded-2xl border border-dashed border-cyan-200 bg-white/70 text-slate-500">
-      商品がありません
-    </div>
+    <motion.div 
+      className="flex min-h-[260px] items-center justify-center rounded-2xl border border-dashed border-cyan-200 bg-white/70 text-slate-500"
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <motion.span
+        animate={{ opacity: [0.5, 1, 0.5] }}
+        transition={{ duration: 2, repeat: Infinity }}
+      >
+        商品がありません
+      </motion.span>
+    </motion.div>
   );
 }
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 30, scale: 0.95 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.5,
+      ease: [0.16, 1, 0.3, 1] as const,
+    },
+  },
+};
 
 function WorksPage() {
   const baseUrl = import.meta.env.BASE_URL || "/";
@@ -406,28 +629,37 @@ function WorksPage() {
   };
 
   const renderAssetSortButtons = () => (
-    <div className="flex justify-end mb-4">
+    <motion.div 
+      className="flex justify-end mb-4"
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: 0.2 }}
+    >
       <div className="flex gap-2">
-        <Button
-          variant={assetSort === 'price-asc' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setAssetSort(assetSort === 'price-asc' ? 'default' : 'price-asc')}
-          className={assetSort === 'price-asc' ? 'bg-cyan-500 hover:bg-cyan-600' : ''}
-        >
-          <ArrowUpDown className="w-4 h-4 mr-1" />
-          安い順
-        </Button>
-        <Button
-          variant={assetSort === 'price-desc' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setAssetSort(assetSort === 'price-desc' ? 'default' : 'price-desc')}
-          className={assetSort === 'price-desc' ? 'bg-cyan-500 hover:bg-cyan-600' : ''}
-        >
-          <ArrowUpDown className="w-4 h-4 mr-1" />
-          高い順
-        </Button>
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <Button
+            variant={assetSort === 'price-asc' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setAssetSort(assetSort === 'price-asc' ? 'default' : 'price-asc')}
+            className={assetSort === 'price-asc' ? 'bg-cyan-500 hover:bg-cyan-600' : ''}
+          >
+            <ArrowUpDown className="w-4 h-4 mr-1" />
+            安い順
+          </Button>
+        </motion.div>
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <Button
+            variant={assetSort === 'price-desc' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setAssetSort(assetSort === 'price-desc' ? 'default' : 'price-desc')}
+            className={assetSort === 'price-desc' ? 'bg-cyan-500 hover:bg-cyan-600' : ''}
+          >
+            <ArrowUpDown className="w-4 h-4 mr-1" />
+            高い順
+          </Button>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 
   const renderToolLikeGrid = (items: ToolLikeWork[], onSelect: (item: ToolLikeWork) => void) => (
@@ -442,55 +674,89 @@ function WorksPage() {
           animate="visible"
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
         >
-          {sortedItems.map((item) => (
+          {sortedItems.map((item, index) => (
             <motion.div key={item.id} variants={itemVariants}>
-              <Card
-                className="group bg-white border-slate-200 hover:border-cyan-300 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-100 h-full flex flex-col cursor-pointer"
-                onClick={() => onSelect(item)}
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center text-3xl shadow-lg`}>
-                      {item.icon}
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                      {item.isNew && (
-                        <Badge className="bg-cyan-500 text-white">
-                          NEW
-                        </Badge>
-                      )}
-                      <Badge variant="outline" className="border-slate-200 text-slate-500">
-                        {item.category}
-                      </Badge>
-                    </div>
-                  </div>
-                  <CardTitle className="text-xl text-slate-700 group-hover:text-cyan-600 transition-colors">
-                    {item.title}
-                  </CardTitle>
-                  <CardDescription className="text-slate-500">{item.description}</CardDescription>
-                </CardHeader>
-
-                <CardContent className="pb-3 flex-grow">
-                  <div className="space-y-2">
-                    {item.features.slice(0, 3).map((feature) => (
-                      <div key={feature} className="flex items-center gap-2 text-sm text-slate-500">
-                        <span className="w-1.5 h-1.5 rounded-full bg-cyan-500" />
-                        {feature}
+              <TiltCard className="h-full">
+                <Card
+                  className="group bg-white border-slate-200 hover:border-cyan-300 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-100 h-full flex flex-col cursor-pointer"
+                  onClick={() => onSelect(item)}
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between mb-3">
+                      <AnimatedIcon icon={item.icon} color={item.color} delay={index * 0.1} />
+                      <div className="flex flex-col items-end gap-2">
+                        {item.isNew && <NewBadge />}
+                        <motion.div
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.3 + index * 0.1 }}
+                        >
+                          <Badge variant="outline" className="border-slate-200 text-slate-500">
+                            {item.category}
+                          </Badge>
+                        </motion.div>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
+                    </div>
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 + index * 0.05 }}
+                    >
+                      <CardTitle className="text-xl text-slate-700 group-hover:text-cyan-600 transition-colors">
+                        {item.title}
+                      </CardTitle>
+                    </motion.div>
+                    <CardDescription className="text-slate-500">{item.description}</CardDescription>
+                  </CardHeader>
 
-                <CardFooter className="flex items-center justify-between pt-3 border-t border-slate-100 mt-auto">
-                  <span className="text-sm font-bold text-cyan-600">
-                    {item.price === 0 ? "無料" : `¥${item.price.toLocaleString()}`}
-                  </span>
-                  <Button size="sm" className="bg-cyan-100 text-cyan-600 hover:bg-cyan-500 hover:text-white transition-all">
-                    <ExternalLink className="w-4 h-4 mr-1" />
-                    詳細
-                  </Button>
-                </CardFooter>
-              </Card>
+                  <CardContent className="pb-3 flex-grow">
+                    <motion.div 
+                      className="space-y-2"
+                      initial="hidden"
+                      animate="visible"
+                      variants={{
+                        hidden: {},
+                        visible: { transition: { staggerChildren: 0.05, delayChildren: 0.3 } }
+                      }}
+                    >
+                      {item.features.slice(0, 3).map((feature) => (
+                        <motion.div 
+                          key={feature} 
+                          className="flex items-center gap-2 text-sm text-slate-500"
+                          variants={{
+                            hidden: { opacity: 0, x: -10 },
+                            visible: { opacity: 1, x: 0 }
+                          }}
+                          whileHover={{ x: 5, color: "#0891b2" }}
+                        >
+                          <motion.span 
+                            className="w-1.5 h-1.5 rounded-full bg-cyan-500"
+                            animate={{ scale: [1, 1.3, 1] }}
+                            transition={{ duration: 1.5, repeat: Infinity }}
+                          />
+                          {feature}
+                        </motion.div>
+                      ))}
+                    </motion.div>
+                  </CardContent>
+
+                  <CardFooter className="flex items-center justify-between pt-3 border-t border-slate-100 mt-auto">
+                    <motion.span 
+                      className="text-sm font-bold text-cyan-600"
+                      animate={{ scale: [1, 1.05, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      {item.price === 0 ? "無料" : `¥${item.price.toLocaleString()}`}
+                    </motion.span>
+                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      <Button size="sm" className="bg-cyan-100 text-cyan-600 hover:bg-cyan-500 hover:text-white transition-all">
+                        <ExternalLink className="w-4 h-4 mr-1" />
+                        詳細
+                      </Button>
+                    </motion.div>
+                  </CardFooter>
+                </Card>
+              </TiltCard>
             </motion.div>
           ))}
         </motion.div>
@@ -513,38 +779,87 @@ function WorksPage() {
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
             className="mb-8"
           >
-            <a href={baseUrl}>
+            <motion.a 
+              href={baseUrl}
+              whileHover={{ x: -5 }}
+              transition={{ type: "spring", stiffness: 400 }}
+            >
               <Button variant="ghost" className="text-slate-500 hover:text-cyan-600">
-                <ChevronLeft className="w-5 h-5 mr-1" />
+                <motion.div
+                  animate={{ x: [0, -3, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  <ChevronLeft className="w-5 h-5 mr-1" />
+                </motion.div>
                 ホームに戻る
               </Button>
-            </a>
+            </motion.a>
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
             className="text-center mb-16"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-100 border border-cyan-200 mb-6">
-              <Package className="w-4 h-4 text-cyan-500" />
+            <motion.div 
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-100 border border-cyan-200 mb-6"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2, type: "spring", stiffness: 300 }}
+            >
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+              >
+                <Package className="w-4 h-4 text-cyan-500" />
+              </motion.div>
               <span className="text-sm text-cyan-600 font-medium">SHOP</span>
-            </div>
+            </motion.div>
 
-            <h1 className="text-3xl lg:text-5xl font-bold mb-4">
-              <span className="text-slate-700">BOOTH</span>
-              <span className="text-gradient ml-2">SHOP</span>
-            </h1>
-            <p className="text-slate-500 text-lg max-w-2xl mx-auto">
-              制作したゲームやツールをBOOTHにて販売しています。
-              各作品の詳細ページでトレーラーやスクリーンショットをご覧いただけます。
-            </p>
+            <motion.h1 
+              className="text-3xl lg:text-5xl font-bold mb-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <span className="text-slate-700">
+                <AnimatedText text="BOOTH" delay={0.3} />
+              </span>
+              <span className="text-gradient ml-2">
+                <AnimatedText text="SHOP" delay={0.5} />
+              </span>
+            </motion.h1>
+            <motion.p 
+              className="text-slate-500 text-lg max-w-2xl mx-auto"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+            >
+              {"制作したゲームやツールをBOOTHにて販売しています。".split("").map((char, index) => (
+                <motion.span
+                  key={index}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.6 + index * 0.02 }}
+                >
+                  {char}
+                </motion.span>
+              ))}
+            </motion.p>
           </motion.div>
 
           {isLoading ? (
-            <div className="text-center text-slate-500 py-12">読み込み中...</div>
+            <div className="flex items-center justify-center py-12">
+              <motion.div
+                className="w-8 h-8 border-4 border-cyan-200 border-t-cyan-500 rounded-full"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              />
+            </div>
           ) : (
             <Tabs defaultValue="games" className="w-full">
               <TabsList className="grid w-full max-w-4xl mx-auto grid-cols-4 mb-8">
@@ -568,115 +883,185 @@ function WorksPage() {
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="games">
-                {worksData.games.length === 0 ? (
-                  <EmptyProductsState />
-                ) : (
-                  <>
-                    <div className="flex justify-end mb-4">
-                      <div className="flex gap-2">
-                        <Button
-                          variant={gameSort === 'price-asc' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => setGameSort(gameSort === 'price-asc' ? 'default' : 'price-asc')}
-                          className={gameSort === 'price-asc' ? 'bg-cyan-500 hover:bg-cyan-600' : ''}
-                        >
-                          <ArrowUpDown className="w-4 h-4 mr-1" />
-                          安い順
-                        </Button>
-                        <Button
-                          variant={gameSort === 'price-desc' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => setGameSort(gameSort === 'price-desc' ? 'default' : 'price-desc')}
-                          className={gameSort === 'price-desc' ? 'bg-cyan-500 hover:bg-cyan-600' : ''}
-                        >
-                          <ArrowUpDown className="w-4 h-4 mr-1" />
-                          高い順
-                        </Button>
-                      </div>
-                    </div>
-                    <motion.div
-                      variants={containerVariants}
-                      initial="hidden"
-                      animate="visible"
-                      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-                    >
-                      {sortGames(worksData.games).map((game) => (
-                        <motion.div key={game.id} variants={itemVariants}>
-                          <Card
-                            className="group bg-white border-slate-200 hover:border-cyan-300 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-100 overflow-hidden cursor-pointer h-full flex flex-col"
-                            onClick={() => setSelectedGame(game)}
-                          >
-                            <div className={`h-40 bg-gradient-to-br ${game.color} relative overflow-hidden`}>
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-6xl">{game.image}</span>
-                              </div>
-                              <div className="absolute inset-0 bg-black/10" />
-                              <div className="absolute top-3 right-3">
-                                <Badge variant="secondary" className="bg-white/80 text-slate-700 backdrop-blur-sm">
-                                  {game.category}
-                                </Badge>
-                              </div>
-                              {game.trailerUrls.length > 0 && (
-                                <div className="absolute bottom-3 left-3">
-                                  <Badge className="bg-red-500/90 text-white backdrop-blur-sm">
-                                    <Play className="w-3 h-3 mr-1" />
-                                    動画あり
-                                  </Badge>
+              <AnimatePresence mode="wait">
+                <TabsContent value="games">
+                  {worksData.games.length === 0 ? (
+                    <EmptyProductsState />
+                  ) : (
+                    <>
+                      <motion.div 
+                        className="flex justify-end mb-4"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                      >
+                        <div className="flex gap-2">
+                          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                            <Button
+                              variant={gameSort === 'price-asc' ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => setGameSort(gameSort === 'price-asc' ? 'default' : 'price-asc')}
+                              className={gameSort === 'price-asc' ? 'bg-cyan-500 hover:bg-cyan-600' : ''}
+                            >
+                              <ArrowUpDown className="w-4 h-4 mr-1" />
+                              安い順
+                            </Button>
+                          </motion.div>
+                          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                            <Button
+                              variant={gameSort === 'price-desc' ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => setGameSort(gameSort === 'price-desc' ? 'default' : 'price-desc')}
+                              className={gameSort === 'price-desc' ? 'bg-cyan-500 hover:bg-cyan-600' : ''}
+                            >
+                              <ArrowUpDown className="w-4 h-4 mr-1" />
+                              高い順
+                            </Button>
+                          </motion.div>
+                        </div>
+                      </motion.div>
+                      <motion.div
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                      >
+                        {sortGames(worksData.games).map((game, index) => (
+                          <motion.div key={game.id} variants={itemVariants}>
+                            <TiltCard className="h-full">
+                              <Card
+                                className="group bg-white border-slate-200 hover:border-cyan-300 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-100 overflow-hidden cursor-pointer h-full flex flex-col"
+                                onClick={() => setSelectedGame(game)}
+                              >
+                                <div className={`h-40 bg-gradient-to-br ${game.color} relative overflow-hidden`}>
+                                  <motion.div 
+                                    className="absolute inset-0 flex items-center justify-center"
+                                    animate={{ y: [0, -5, 0], rotate: [0, 2, -2, 0] }}
+                                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: index * 0.2 }}
+                                  >
+                                    <span className="text-6xl drop-shadow-lg">{game.image}</span>
+                                  </motion.div>
+                                  <motion.div 
+                                    className="absolute inset-0 bg-black/10"
+                                    whileHover={{ opacity: 0 }}
+                                  />
+                                  <div className="absolute top-3 right-3">
+                                    <motion.div
+                                      initial={{ opacity: 0, scale: 0.8, x: 20 }}
+                                      animate={{ opacity: 1, scale: 1, x: 0 }}
+                                      transition={{ delay: 0.3 + index * 0.1 }}
+                                    >
+                                      <Badge variant="secondary" className="bg-white/80 text-slate-700 backdrop-blur-sm">
+                                        {game.category}
+                                      </Badge>
+                                    </motion.div>
+                                  </div>
+                                  {game.trailerUrls.length > 0 && (
+                                    <motion.div 
+                                      className="absolute bottom-3 left-3"
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      transition={{ delay: 0.4 + index * 0.1 }}
+                                    >
+                                      <Badge className="bg-red-500/90 text-white backdrop-blur-sm">
+                                        <motion.div
+                                          animate={{ scale: [1, 1.2, 1] }}
+                                          transition={{ duration: 1.5, repeat: Infinity }}
+                                        >
+                                          <Play className="w-3 h-3 mr-1" />
+                                        </motion.div>
+                                        動画あり
+                                      </Badge>
+                                    </motion.div>
+                                  )}
+                                  <motion.div
+                                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -skew-x-12"
+                                    initial={{ x: "-200%" }}
+                                    whileHover={{ x: "200%" }}
+                                    transition={{ duration: 0.8, ease: "easeInOut" }}
+                                  />
                                 </div>
-                              )}
-                            </div>
 
-                            <CardHeader className="pb-3">
-                              <CardTitle className="text-xl text-slate-700 group-hover:text-cyan-600 transition-colors">
-                                {game.title}
-                              </CardTitle>
-                              <CardDescription className="line-clamp-2 text-slate-500">
-                                {game.description}
-                              </CardDescription>
-                            </CardHeader>
+                                <CardHeader className="pb-3">
+                                  <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.2 + index * 0.05 }}
+                                  >
+                                    <CardTitle className="text-xl text-slate-700 group-hover:text-cyan-600 transition-colors">
+                                      {game.title}
+                                    </CardTitle>
+                                  </motion.div>
+                                  <CardDescription className="line-clamp-2 text-slate-500">
+                                    {game.description}
+                                  </CardDescription>
+                                </CardHeader>
 
-                            <CardContent className="pb-3 flex-grow">
-                              <div className="flex flex-wrap gap-2">
-                                {game.tags.slice(0, 3).map((tag) => (
-                                  <Badge key={tag} variant="outline" className="text-xs border-cyan-200 text-cyan-600">
-                                    {tag}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </CardContent>
+                                <CardContent className="pb-3 flex-grow">
+                                  <motion.div 
+                                    className="flex flex-wrap gap-2"
+                                    initial="hidden"
+                                    animate="visible"
+                                    variants={{
+                                      hidden: {},
+                                      visible: { transition: { staggerChildren: 0.05 } }
+                                    }}
+                                  >
+                                    {game.tags.slice(0, 3).map((tag) => (
+                                      <motion.div
+                                        key={tag}
+                                        variants={{
+                                          hidden: { opacity: 0, scale: 0.8 },
+                                          visible: { opacity: 1, scale: 1 }
+                                        }}
+                                        whileHover={{ scale: 1.1, y: -2 }}
+                                      >
+                                        <Badge variant="outline" className="text-xs border-cyan-200 text-cyan-600 hover:bg-cyan-50">
+                                          {tag}
+                                        </Badge>
+                                      </motion.div>
+                                    ))}
+                                  </motion.div>
+                                </CardContent>
 
-                            <CardFooter className="flex items-center justify-between pt-3 border-t border-slate-100 mt-auto">
-                              <span className="text-sm font-bold text-cyan-600">
-                                {game.price === 0 ? "無料" : `¥${game.price.toLocaleString()}`}
-                              </span>
-                              <Button size="sm" className="bg-cyan-100 text-cyan-600 hover:bg-cyan-500 hover:text-white transition-all">
-                                <ExternalLink className="w-4 h-4 mr-1" />
-                                詳細
-                              </Button>
-                            </CardFooter>
-                          </Card>
-                        </motion.div>
-                      ))}
-                    </motion.div>
-                  </>
-                )}
-              </TabsContent>
+                                <CardFooter className="flex items-center justify-between pt-3 border-t border-slate-100 mt-auto">
+                                  <motion.span 
+                                    className="text-sm font-bold text-cyan-600"
+                                    animate={{ scale: [1, 1.05, 1] }}
+                                    transition={{ duration: 2, repeat: Infinity }}
+                                  >
+                                    {game.price === 0 ? "無料" : `¥${game.price.toLocaleString()}`}
+                                  </motion.span>
+                                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                                    <Button size="sm" className="bg-cyan-100 text-cyan-600 hover:bg-cyan-500 hover:text-white transition-all">
+                                      <ExternalLink className="w-4 h-4 mr-1" />
+                                      詳細
+                                    </Button>
+                                  </motion.div>
+                                </CardFooter>
+                              </Card>
+                            </TiltCard>
+                          </motion.div>
+                        ))}
+                      </motion.div>
+                    </>
+                  )}
+                </TabsContent>
 
-              <TabsContent value="tools">
-                {worksData.tools.length > 0 && renderAssetSortButtons()}
-                {renderToolLikeGrid(worksData.tools, setSelectedTool)}
-              </TabsContent>
+                <TabsContent value="tools">
+                  {worksData.tools.length > 0 && renderAssetSortButtons()}
+                  {renderToolLikeGrid(worksData.tools, setSelectedTool)}
+                </TabsContent>
 
-              <TabsContent value="model-assets">
-                {worksData.modelAssets.length > 0 && renderAssetSortButtons()}
-                {renderToolLikeGrid(worksData.modelAssets, setSelectedModelAsset)}
-              </TabsContent>
+                <TabsContent value="model-assets">
+                  {worksData.modelAssets.length > 0 && renderAssetSortButtons()}
+                  {renderToolLikeGrid(worksData.modelAssets, setSelectedModelAsset)}
+                </TabsContent>
 
-              <TabsContent value="blender-addons">
-                {worksData.blenderAddons.length > 0 && renderAssetSortButtons()}
-                {renderToolLikeGrid(worksData.blenderAddons, setSelectedBlenderAddon)}
-              </TabsContent>
+                <TabsContent value="blender-addons">
+                  {worksData.blenderAddons.length > 0 && renderAssetSortButtons()}
+                  {renderToolLikeGrid(worksData.blenderAddons, setSelectedBlenderAddon)}
+                </TabsContent>
+              </AnimatePresence>
             </Tabs>
           )}
         </div>

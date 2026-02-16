@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom/client'
-import { motion } from "framer-motion";
-import { BookOpen, ChevronLeft, ChevronRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { BookOpen, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Navigation } from "@/components/Navigation";
@@ -19,6 +19,72 @@ type GrowthRecord = {
   images: string[];
   youtubeUrls: string[];
 };
+
+// アニメーションコンポーネント
+function AnimatedText({ text, delay = 0 }: { text: string; delay?: number }) {
+  return (
+    <>
+      {text.split("").map((char, index) => (
+        <motion.span
+          key={index}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: delay + index * 0.03, duration: 0.3 }}
+          style={{ display: "inline-block" }}
+        >
+          {char === " " ? "\u00A0" : char}
+        </motion.span>
+      ))}
+    </>
+  );
+}
+
+function ShimmerBadge({ children, className }: { children: React.ReactNode; className?: string }) {
+  return (
+    <motion.div 
+      className={`relative overflow-hidden ${className}`}
+      whileHover={{ scale: 1.05 }}
+      transition={{ type: "spring", stiffness: 400 }}
+    >
+      {children}
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12"
+        initial={{ x: "-200%" }}
+        animate={{ x: "200%" }}
+        transition={{ duration: 2, repeat: Infinity, repeatDelay: 3, ease: "easeInOut" }}
+      />
+    </motion.div>
+  );
+}
+
+function SkeletonCard() {
+  return (
+    <Card className="bg-white border-cyan-100 overflow-hidden h-full">
+      <motion.div 
+        className="aspect-[4/3] border-b border-cyan-100 bg-slate-100"
+        animate={{ opacity: [0.5, 1, 0.5] }}
+        transition={{ duration: 1.5, repeat: Infinity }}
+      />
+      <CardContent className="p-5 space-y-3">
+        <motion.div 
+          className="h-6 bg-slate-200 rounded w-3/4"
+          animate={{ opacity: [0.5, 1, 0.5] }}
+          transition={{ duration: 1.5, repeat: Infinity, delay: 0.1 }}
+        />
+        <motion.div 
+          className="h-4 bg-slate-200 rounded w-full"
+          animate={{ opacity: [0.5, 1, 0.5] }}
+          transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}
+        />
+        <motion.div 
+          className="h-4 bg-slate-200 rounded w-2/3"
+          animate={{ opacity: [0.5, 1, 0.5] }}
+          transition={{ duration: 1.5, repeat: Infinity, delay: 0.3 }}
+        />
+      </CardContent>
+    </Card>
+  );
+}
 
 function toText(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
@@ -143,27 +209,37 @@ function RecordCardMedia({
     const imageSources = images.map((image) => resolveImageSrc(baseUrl, image));
 
     return (
-      <div className="relative w-full h-full overflow-hidden">
+      <div className="relative w-full h-full overflow-hidden group">
         <motion.div
           className="flex h-full w-full"
           animate={{ x: `-${activeImageIndex * 100}%` }}
           transition={{ duration: 0.45, ease: "easeInOut" }}
         >
           {imageSources.map((src, index) => (
-            <div key={`${src}-${index}`} className="h-full w-full shrink-0">
+            <motion.div 
+              key={`${src}-${index}`} 
+              className="h-full w-full shrink-0 relative overflow-hidden"
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.3 }}
+            >
               <img src={src} alt={`${title} ${index + 1}`} className="w-full h-full object-cover" />
-            </div>
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+              />
+            </motion.div>
           ))}
         </motion.div>
 
         {imageSources.length > 1 && (
           <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 rounded-full bg-black/30 px-2 py-1 backdrop-blur-sm">
             {imageSources.map((_, index) => (
-              <button
+              <motion.button
                 key={index}
                 type="button"
                 aria-label={`画像 ${index + 1} に移動`}
                 onClick={() => setActiveImageIndex(index)}
+                whileHover={{ scale: 1.3 }}
+                whileTap={{ scale: 0.9 }}
                 className={`h-2 w-2 rounded-full transition-all ${
                   index === activeImageIndex ? "bg-white" : "bg-white/55"
                 }`}
@@ -171,6 +247,14 @@ function RecordCardMedia({
             ))}
           </div>
         )}
+        
+        {/* 光の反射 */}
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 pointer-events-none"
+          initial={{ x: "-200%" }}
+          whileHover={{ x: "200%" }}
+          transition={{ duration: 0.8 }}
+        />
       </div>
     );
   }
@@ -262,6 +346,27 @@ function RecordsPage() {
     return Array.from({ length: end - adjustedStart + 1 }, (_, i) => adjustedStart + i);
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.08 },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30, scale: 0.95 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        duration: 0.5,
+        ease: [0.16, 1, 0.3, 1] as const,
+      },
+    },
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -277,105 +382,201 @@ function RecordsPage() {
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
             className="mb-8"
           >
-            <a href={baseUrl}>
+            <motion.a 
+              href={baseUrl}
+              whileHover={{ x: -5 }}
+              transition={{ type: "spring", stiffness: 400 }}
+            >
               <Button variant="ghost" className="text-slate-500 hover:text-cyan-600">
-                <ChevronLeft className="w-5 h-5 mr-1" />
+                <motion.div
+                  animate={{ x: [0, -3, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  <ChevronLeft className="w-5 h-5 mr-1" />
+                </motion.div>
                 ホームに戻る
               </Button>
-            </a>
+            </motion.a>
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
             className="text-center mb-14"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-100 border border-cyan-200 mb-6">
-              <BookOpen className="w-4 h-4 text-cyan-500" />
+            <motion.div 
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-100 border border-cyan-200 mb-6"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2, type: "spring", stiffness: 300 }}
+            >
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+              >
+                <Sparkles className="w-4 h-4 text-cyan-500" />
+              </motion.div>
               <span className="text-sm text-cyan-600 font-medium">Growth Log</span>
-            </div>
+            </motion.div>
 
-            <h1 className="text-3xl lg:text-5xl font-bold mb-4">
-              <span className="text-slate-700">成長</span>
-              <span className="text-gradient">記録</span>
-            </h1>
-            <p className="text-slate-500 text-lg max-w-2xl mx-auto">
-              制作活動の進捗をカード形式でまとめています。
-            </p>
+            <motion.h1 
+              className="text-3xl lg:text-5xl font-bold mb-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <span className="text-slate-700">
+                <AnimatedText text="成長" delay={0.3} />
+              </span>
+              <span className="text-gradient">
+                <AnimatedText text="記録" delay={0.5} />
+              </span>
+            </motion.h1>
+            <motion.p 
+              className="text-slate-500 text-lg max-w-2xl mx-auto"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+            >
+              {"制作活動の進捗をカード形式でまとめています。".split("").map((char, index) => (
+                <motion.span
+                  key={index}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.6 + index * 0.02 }}
+                >
+                  {char}
+                </motion.span>
+              ))}
+            </motion.p>
           </motion.div>
 
           {isLoading ? (
-            <div className="text-center text-slate-500 py-12">読み込み中...</div>
+            <motion.div 
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              initial="hidden"
+              animate="visible"
+              variants={containerVariants}
+            >
+              {[...Array(6)].map((_, i) => (
+                <motion.div key={i} variants={itemVariants}>
+                  <SkeletonCard />
+                </motion.div>
+              ))}
+            </motion.div>
           ) : records.length === 0 ? (
-            <div className="text-center text-slate-500 py-12">記録データがありません。</div>
+            <motion.div 
+              className="text-center text-slate-500 py-12"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              記録データがありません。
+            </motion.div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {visibleRecords.map((item, index) => {
-                const primaryVideo = item.youtubeUrls[0] ? toYouTubeEmbedUrl(item.youtubeUrls[0]) : null;
+            <motion.div 
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              <AnimatePresence>
+                {visibleRecords.map((item, index) => {
+                  const primaryVideo = item.youtubeUrls[0] ? toYouTubeEmbedUrl(item.youtubeUrls[0]) : null;
 
-                return (
-                  <motion.div
-                    key={item.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.08 + index * 0.05 }}
-                  >
-                    <Card className="bg-white border-cyan-100 overflow-hidden h-full">
-                      <div className="aspect-[4/3] border-b border-cyan-100 bg-slate-50 overflow-hidden">
-                        <RecordCardMedia
-                          images={item.images}
-                          title={item.title}
-                          baseUrl={baseUrl}
-                          fallbackVideo={primaryVideo}
-                        />
-                      </div>
-                      <CardContent className="p-5">
-                        <h3 className="text-lg font-bold text-slate-700 mb-2">{item.title}</h3>
-                        <p className="text-slate-500 leading-relaxed">{item.description}</p>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                );
-              })}
-            </div>
+                  return (
+                    <motion.div
+                      key={item.id}
+                      variants={itemVariants}
+                      layout
+                      whileHover={{ y: -8, transition: { duration: 0.2 } }}
+                    >
+                      <Card className="bg-white border-cyan-100 overflow-hidden h-full group hover:border-cyan-300 hover:shadow-xl hover:shadow-cyan-100/50 transition-all duration-300">
+                        <div className="aspect-[4/3] border-b border-cyan-100 bg-slate-50 overflow-hidden">
+                          <RecordCardMedia
+                            images={item.images}
+                            title={item.title}
+                            baseUrl={baseUrl}
+                            fallbackVideo={primaryVideo}
+                          />
+                        </div>
+                        <CardContent className="p-5">
+                          <motion.h3 
+                            className="text-lg font-bold text-slate-700 mb-2 group-hover:text-cyan-600 transition-colors"
+                            initial={{ opacity: 0 }}
+                            whileInView={{ opacity: 1 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: 0.1 }}
+                          >
+                            {item.title}
+                          </motion.h3>
+                          <p className="text-slate-500 leading-relaxed">{item.description}</p>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </motion.div>
           )}
 
           {!isLoading && totalPages > 1 && (
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-              >
-                <ChevronLeft className="w-4 h-4 mr-1" />
-                前へ
-              </Button>
+            <motion.div 
+              className="mt-10 flex flex-wrap items-center justify-center gap-2"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="relative overflow-hidden"
+                >
+                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  前へ
+                </Button>
+              </motion.div>
 
               {getVisiblePages().map((page) => (
-                <Button
+                <motion.div 
                   key={page}
-                  size="sm"
-                  variant={page === currentPage ? "default" : "outline"}
-                  onClick={() => setCurrentPage(page)}
-                  className={page === currentPage ? "bg-cyan-500 hover:bg-cyan-600" : ""}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
                 >
-                  {page}
-                </Button>
+                  <Button
+                    size="sm"
+                    variant={page === currentPage ? "default" : "outline"}
+                    onClick={() => setCurrentPage(page)}
+                    className={page === currentPage ? "bg-cyan-500 hover:bg-cyan-600" : ""}
+                  >
+                    {page}
+                  </Button>
+                </motion.div>
               ))}
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-              >
-                次へ
-                <ChevronRight className="w-4 h-4 ml-1" />
-              </Button>
-            </div>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  次へ
+                  <motion.div
+                    animate={{ x: [0, 3, 0] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  >
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </motion.div>
+                </Button>
+              </motion.div>
+            </motion.div>
           )}
         </div>
       </section>

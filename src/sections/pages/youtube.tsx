@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReactDOM from 'react-dom/client'
-import { motion } from "framer-motion";
-import { Youtube, Play, Eye, ThumbsUp, ExternalLink, ChevronLeft, BarChart3 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Youtube, Play, Eye, ThumbsUp, ExternalLink, ChevronLeft, BarChart3, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Navigation } from "@/components/Navigation";
@@ -52,6 +52,74 @@ type ChannelVideo = {
   thumbnailUrl: string;
   publishedAt: string;
 };
+
+// アニメーションコンポーネント
+function AnimatedText({ text, delay = 0 }: { text: string; delay?: number }) {
+  return (
+    <>
+      {text.split("").map((char, index) => (
+        <motion.span
+          key={index}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: delay + index * 0.03, duration: 0.3 }}
+          style={{ display: "inline-block" }}
+        >
+          {char === " " ? "\u00A0" : char}
+        </motion.span>
+      ))}
+    </>
+  );
+}
+
+// パルスリング
+function PulseRing({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative">
+      <motion.div
+        className="absolute inset-0 rounded-full border-2 border-red-400"
+        animate={{
+          scale: [1, 1.3, 1.3],
+          opacity: [0.5, 0, 0],
+        }}
+        transition={{ duration: 2, repeat: Infinity }}
+      />
+      {children}
+    </div>
+  );
+}
+
+// カウントアップアニメーション
+function CountUp({ value, suffix = "" }: { value: number | null; suffix?: string }) {
+  const [displayValue, setDisplayValue] = useState(0);
+  
+  useEffect(() => {
+    if (value === null) return;
+    
+    const duration = 1500;
+    const startTime = Date.now();
+    const startValue = displayValue;
+    
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const easeProgress = 1 - Math.pow(1 - progress, 3);
+      const current = Math.floor(startValue + (value - startValue) * easeProgress);
+      
+      setDisplayValue(current);
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+    
+    requestAnimationFrame(animate);
+  }, [value]);
+  
+  if (value === null) return <span>-</span>;
+  
+  return <span>{new Intl.NumberFormat("ja-JP").format(displayValue)}{suffix}</span>;
+}
 
 type YouTubeThumbnailSet = {
   default?: { url?: string };
@@ -665,80 +733,143 @@ function ChannelVideoCarousel({
   }, [handlePlayingChange, videos, videosKey]);
 
   return (
-    <Card className="bg-white border-slate-200 hover:border-cyan-300 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-100 overflow-hidden">
-      <div className="aspect-video bg-slate-100 relative overflow-hidden">
-        {videos.length > 0 ? (
-          <motion.div
-            className="flex h-full w-full"
-            animate={{ x: `-${displayIndex * 100}%` }}
-            transition={{ duration: 0.45, ease: "easeInOut" }}
-          >
-            {videos.map((video) => (
-              <div key={video.id} className="h-full w-full shrink-0 relative">
-                <div
-                  ref={(element) => {
-                    if (element) {
-                      playerMountRefs.current[video.id] = element;
-                    } else {
-                      delete playerMountRefs.current[video.id];
-                    }
-                  }}
-                  className="h-full w-full"
-                />
-                <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/70 text-white text-xs rounded">
-                  {formatDuration(video.durationIso)}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <Card className="bg-white border-slate-200 hover:border-red-300 transition-all duration-300 hover:shadow-xl hover:shadow-red-100/50 overflow-hidden group">
+        <div className="aspect-video bg-slate-100 relative overflow-hidden">
+          {videos.length > 0 ? (
+            <motion.div
+              className="flex h-full w-full"
+              animate={{ x: `-${displayIndex * 100}%` }}
+              transition={{ duration: 0.45, ease: "easeInOut" }}
+            >
+              {videos.map((video) => (
+                <div key={video.id} className="h-full w-full shrink-0 relative">
+                  <div
+                    ref={(element) => {
+                      if (element) {
+                        playerMountRefs.current[video.id] = element;
+                      } else {
+                        delete playerMountRefs.current[video.id];
+                      }
+                    }}
+                    className="h-full w-full"
+                  />
+                  <motion.div 
+                    className="absolute bottom-2 right-2 px-2 py-1 bg-black/70 text-white text-xs rounded"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    {formatDuration(video.durationIso)}
+                  </motion.div>
                 </div>
-              </div>
-            ))}
-          </motion.div>
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm">
-            {isLoading ? "動画を取得中..." : "動画が見つかりません"}
-          </div>
-        )}
-      </div>
-
-      <CardContent className="p-4">
-        <p className="text-xs text-slate-400 mb-2">{channel.title}</p>
-        <h3 className="font-medium text-slate-700 line-clamp-2 mb-2 min-h-[3.2rem]">
-          {activeVideo?.title ?? "動画の取得待機中"}
-        </h3>
-        <div className="flex items-center gap-4 text-sm text-slate-400">
-          <span className="flex items-center gap-1">
-            <Eye className="w-4 h-4" />
-            {formatCount(activeVideo?.views ?? null)}
-          </span>
-          <span className="flex items-center gap-1">
-            <ThumbsUp className="w-4 h-4" />
-            {formatCount(activeVideo?.likes ?? null)}
-          </span>
+              ))}
+            </motion.div>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm">
+              {isLoading ? (
+                <motion.div
+                  className="w-6 h-6 border-2 border-red-200 border-t-red-500 rounded-full"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                />
+              ) : (
+                "動画が見つかりません"
+              )}
+            </div>
+          )}
         </div>
 
-        {videos.length > 1 && (
-          <div className="mt-3 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-1.5">
-              {videos.map((video, index) => (
-                <button
-                  key={video.id}
-                  type="button"
-                  aria-label={`${channel.title} ${index + 1}件目`}
-                  onClick={() => {
-                    if (isPlaying) return;
-                    setActiveIndex(index);
-                  }}
-                  className={`h-2 w-2 rounded-full transition-all ${
-                    index === displayIndex ? "bg-cyan-500" : "bg-slate-300 hover:bg-slate-400"
-                  }`}
-                />
-              ))}
-            </div>
-            <span className="text-[11px] text-slate-400 whitespace-nowrap">
-              {isPlaying ? "再生中: スライド停止" : "自動スライド中"}
-            </span>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+        <CardContent className="p-4">
+          <motion.p 
+            className="text-xs text-slate-400 mb-2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.1 }}
+          >
+            {channel.title}
+          </motion.p>
+          <motion.h3 
+            className="font-medium text-slate-700 line-clamp-2 mb-2 min-h-[3.2rem]"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+          >
+            {activeVideo?.title ?? "動画の取得待機中"}
+          </motion.h3>
+          <motion.div 
+            className="flex items-center gap-4 text-sm text-slate-400"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            <motion.span 
+              className="flex items-center gap-1"
+              whileHover={{ scale: 1.05, color: "#ef4444" }}
+            >
+              <motion.div
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <Eye className="w-4 h-4" />
+              </motion.div>
+              {formatCount(activeVideo?.views ?? null)}
+            </motion.span>
+            <motion.span 
+              className="flex items-center gap-1"
+              whileHover={{ scale: 1.05, color: "#ef4444" }}
+            >
+              <motion.div
+                animate={{ scale: [1, 1.3, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              >
+                <ThumbsUp className="w-4 h-4" />
+              </motion.div>
+              {formatCount(activeVideo?.likes ?? null)}
+            </motion.span>
+          </motion.div>
+
+          {videos.length > 1 && (
+            <motion.div 
+              className="mt-3 flex items-center justify-between gap-3"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.25 }}
+            >
+              <div className="flex items-center gap-1.5">
+                {videos.map((video, index) => (
+                  <motion.button
+                    key={video.id}
+                    type="button"
+                    aria-label={`${channel.title} ${index + 1}件目`}
+                    onClick={() => {
+                      if (isPlaying) return;
+                      setActiveIndex(index);
+                    }}
+                    whileHover={{ scale: 1.3 }}
+                    whileTap={{ scale: 0.9 }}
+                    className={`h-2 w-2 rounded-full transition-all ${
+                      index === displayIndex ? "bg-cyan-500" : "bg-slate-300 hover:bg-slate-400"
+                    }`}
+                  />
+                ))}
+              </div>
+              <motion.span 
+                className="text-[11px] text-slate-400 whitespace-nowrap"
+                animate={{ opacity: isPlaying ? [0.5, 1, 0.5] : 1 }}
+                transition={{ duration: 1.5, repeat: isPlaying ? Infinity : 0 }}
+              >
+                {isPlaying ? "再生中: スライド停止" : "自動スライド中"}
+              </motion.span>
+            </motion.div>
+          )}
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }
 
@@ -905,121 +1036,258 @@ function YouTubePage() {
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
             className="mb-8"
           >
-            <a href={baseUrl}>
+            <motion.a 
+              href={baseUrl}
+              whileHover={{ x: -5 }}
+              transition={{ type: "spring", stiffness: 400 }}
+            >
               <Button variant="ghost" className="text-slate-500 hover:text-cyan-600">
-                <ChevronLeft className="w-5 h-5 mr-1" />
+                <motion.div
+                  animate={{ x: [0, -3, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  <ChevronLeft className="w-5 h-5 mr-1" />
+                </motion.div>
                 ホームに戻る
               </Button>
-            </a>
+            </motion.a>
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
             className="text-center mb-16"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-100 border border-red-200 mb-6">
-              <Youtube className="w-4 h-4 text-red-500" />
+            <motion.div 
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-100 border border-red-200 mb-6"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2, type: "spring", stiffness: 300 }}
+            >
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+              >
+                <Sparkles className="w-4 h-4 text-red-500" />
+              </motion.div>
               <span className="text-sm text-red-600 font-medium">YouTube</span>
-            </div>
+            </motion.div>
 
-            <h1 className="text-3xl lg:text-5xl font-bold mb-4">
-              <span className="text-slate-700">おすすめ</span>
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-rose-500">チャンネル</span>
-            </h1>
-            <p className="text-slate-500 text-lg max-w-2xl mx-auto">
-              いつも楽しく見させていただいている、
-              おすすめのYouTubeチャンネルを紹介します。
-            </p>
+            <motion.h1 
+              className="text-3xl lg:text-5xl font-bold mb-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <span className="text-slate-700">
+                <AnimatedText text="おすすめ" delay={0.3} />
+              </span>
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-rose-500 ml-2">
+                <AnimatedText text="チャンネル" delay={0.5} />
+              </span>
+            </motion.h1>
+            <motion.p 
+              className="text-slate-500 text-lg max-w-2xl mx-auto"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+            >
+              {"いつも楽しく見させていただいている、おすすめのYouTubeチャンネルを紹介します。".split("").map((char, index) => (
+                <motion.span
+                  key={index}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.6 + index * 0.02 }}
+                >
+                  {char}
+                </motion.span>
+              ))}
+            </motion.p>
             {apiError && (
-              <p className="text-sm text-rose-500 mt-4">{apiError}</p>
+              <motion.p 
+                className="text-sm text-rose-500 mt-4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.7 }}
+              >
+                {apiError}
+              </motion.p>
             )}
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
             className="mb-16"
           >
-            <h2 className="text-xl font-bold text-slate-700 mb-6 flex items-center gap-2">
-              <Play className="w-5 h-5 text-red-500" />
+            <motion.h2 
+              className="text-xl font-bold text-slate-700 mb-6 flex items-center gap-2"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              >
+                <Play className="w-5 h-5 text-red-500" />
+              </motion.div>
               いつも見ているチャンネル
-            </h2>
+            </motion.h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {channels.map((channel) => (
+            <motion.div 
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              {channels.map((channel, index) => (
                 <motion.div
                   key={channel.id}
-                  whileHover={{ scale: 1.02 }}
+                  variants={itemVariants}
+                  whileHover={{ y: -8, transition: { duration: 0.2 } }}
                   className="group h-full"
                 >
-                  <Card className="h-full flex flex-col bg-white border-slate-200 hover:border-red-300 transition-all duration-300 hover:shadow-xl hover:shadow-red-100 overflow-hidden">
+                  <Card className="h-full flex flex-col bg-white border-slate-200 hover:border-red-300 transition-all duration-300 hover:shadow-xl hover:shadow-red-100/50 overflow-hidden">
                     <CardContent className="p-6 h-full flex flex-col">
                       <div className="flex items-start gap-4 flex-1">
-                        <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 shadow-lg bg-slate-100">
+                        <motion.div 
+                          className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 shadow-lg bg-slate-100"
+                          whileHover={{ scale: 1.1, rotate: 5 }}
+                          transition={{ type: "spring", stiffness: 400 }}
+                        >
                           {channel.thumbnailUrl ? (
-                            <img
+                            <motion.img
                               src={channel.thumbnailUrl}
                               alt={channel.title}
                               className="w-full h-full object-cover"
+                              whileHover={{ scale: 1.1 }}
                             />
                           ) : (
                             <div className={`w-full h-full bg-gradient-to-br ${channel.color} flex items-center justify-center text-4xl`}>
-                              {channel.fallbackEmoji}
+                              <motion.span
+                                animate={{ y: [0, -5, 0], rotate: [0, 5, -5, 0] }}
+                                transition={{ duration: 3, repeat: Infinity, delay: index * 0.3 }}
+                              >
+                                {channel.fallbackEmoji}
+                              </motion.span>
                             </div>
                           )}
-                        </div>
+                        </motion.div>
                         <div className="flex-grow min-w-0">
                           <div className="mb-2">
-                            <h3 className="flex-1 min-w-0 text-lg leading-tight font-bold text-slate-700 group-hover:text-red-500 transition-colors line-clamp-2 min-h-[3rem]">
+                            <motion.h3 
+                              className="flex-1 min-w-0 text-lg leading-tight font-bold text-slate-700 group-hover:text-red-500 transition-colors line-clamp-2 min-h-[3rem]"
+                              whileHover={{ x: 3 }}
+                            >
                               {channel.title}
-                            </h3>
+                            </motion.h3>
                           </div>
                           <p className="text-slate-500 text-sm mb-3 truncate">
                             @{normalizeHandle(channel.handle)}
                           </p>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm text-slate-400">
-                            <span className="flex items-center gap-1 min-w-0">
-                              <Eye className="w-4 h-4" />
-                              {channel.subscriberCount !== null ? `${formatCount(channel.subscriberCount)} 登録者` : "登録者 -"}
-                            </span>
-                            <span className="flex items-center gap-1 min-w-0">
+                            <motion.span 
+                              className="flex items-center gap-1 min-w-0"
+                              whileHover={{ scale: 1.05, color: "#ef4444" }}
+                            >
+                              <motion.div
+                                animate={{ scale: [1, 1.2, 1] }}
+                                transition={{ duration: 2, repeat: Infinity }}
+                              >
+                                <Eye className="w-4 h-4" />
+                              </motion.div>
+                              {channel.subscriberCount !== null ? (
+                                <CountUp value={channel.subscriberCount} suffix=" 登録者" />
+                              ) : (
+                                "登録者 -"
+                              )}
+                            </motion.span>
+                            <motion.span 
+                              className="flex items-center gap-1 min-w-0"
+                              whileHover={{ scale: 1.05, color: "#ef4444" }}
+                            >
                               <Play className="w-4 h-4" />
-                              {channel.videoCount !== null ? `${formatCount(channel.videoCount)} 本の動画` : "動画数 -"}
-                            </span>
-                            <span className="flex items-center gap-1 min-w-0 sm:col-span-2">
+                              {channel.videoCount !== null ? (
+                                <CountUp value={channel.videoCount} suffix=" 本の動画" />
+                              ) : (
+                                "動画数 -"
+                              )}
+                            </motion.span>
+                            <motion.span 
+                              className="flex items-center gap-1 min-w-0 sm:col-span-2"
+                              whileHover={{ scale: 1.05, color: "#ef4444" }}
+                            >
                               <BarChart3 className="w-4 h-4" />
-                              {channel.totalViewCount !== null ? `${formatCount(channel.totalViewCount)} 総再生` : "再生数 -"}
-                            </span>
+                              {channel.totalViewCount !== null ? (
+                                <CountUp value={channel.totalViewCount} suffix=" 総再生" />
+                              ) : (
+                                "再生数 -"
+                              )}
+                            </motion.span>
                           </div>
                         </div>
                       </div>
                       <div className="mt-4 pt-4 border-t border-slate-100">
-                        <a href={channel.url} target="_blank" rel="noopener noreferrer">
-                          <Button size="sm" className="w-full bg-red-500 hover:bg-red-600 text-white">
-                            <ExternalLink className="w-4 h-4 mr-2" />
-                            チャンネルを見る
+                        <motion.a 
+                          href={channel.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <Button 
+                            size="sm" 
+                            className="w-full bg-red-500 hover:bg-red-600 text-white relative overflow-hidden group"
+                          >
+                            <motion.span
+                              className="absolute inset-0 bg-white/20"
+                              initial={{ x: "-100%", skewX: -20 }}
+                              whileHover={{ x: "100%" }}
+                              transition={{ duration: 0.5 }}
+                            />
+                            <span className="relative flex items-center justify-center">
+                              <ExternalLink className="w-4 h-4 mr-2" />
+                              チャンネルを見る
+                            </span>
                           </Button>
-                        </a>
+                        </motion.a>
                       </div>
                     </CardContent>
                   </Card>
                 </motion.div>
               ))}
-            </div>
+            </motion.div>
           </motion.div>
 
           <motion.div variants={containerVariants} initial="hidden" animate="visible">
-            <h2 className="text-xl font-bold text-slate-700 mb-6 flex items-center gap-2">
-              <ThumbsUp className="w-5 h-5 text-cyan-500" />
+            <motion.h2 
+              className="text-xl font-bold text-slate-700 mb-6 flex items-center gap-2"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              <motion.div
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <ThumbsUp className="w-5 h-5 text-cyan-500" />
+              </motion.div>
               チャンネル別の最新動画
-            </h2>
+            </motion.h2>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {channels.map((channel) => (
-                <motion.div key={channel.id} variants={itemVariants}>
+              {channels.map((channel, index) => (
+                <motion.div 
+                  key={channel.id} 
+                  variants={itemVariants}
+                  transition={{ delay: index * 0.1 }}
+                >
                   <ChannelVideoCarousel
                     channel={channel}
                     videos={videosByHandle[normalizeHandle(channel.handle)] ?? []}
