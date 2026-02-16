@@ -551,13 +551,6 @@ function ChannelVideoCarousel({
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const videoIds = videos.map((video) => video.id).join(",");
-
-  useEffect(() => {
-    setActiveIndex(0);
-    setIsPlaying(false);
-    onChannelPlayingChange(channel.handle, false);
-  }, [channel.handle, onChannelPlayingChange, videoIds]);
 
   useEffect(() => {
     if (videos.length <= 1 || isGlobalPlaying) return;
@@ -573,7 +566,8 @@ function ChannelVideoCarousel({
     };
   }, [channel.handle, onChannelPlayingChange]);
 
-  const activeVideo = videos[activeIndex] ?? null;
+  const resolvedActiveIndex = activeIndex < videos.length ? activeIndex : 0;
+  const activeVideo = videos[resolvedActiveIndex] ?? null;
 
   const handlePlayingChange = useCallback(
     (value: boolean) => {
@@ -630,7 +624,7 @@ function ChannelVideoCarousel({
                     setActiveIndex(index);
                   }}
                   className={`h-2 w-2 rounded-full transition-all ${
-                    index === activeIndex ? "bg-cyan-500" : "bg-slate-300 hover:bg-slate-400"
+                    index === resolvedActiveIndex ? "bg-cyan-500" : "bg-slate-300 hover:bg-slate-400"
                   }`}
                 />
               ))}
@@ -724,8 +718,9 @@ function YouTubePage() {
         if (disposed) return;
         setApiError("YouTubeデータの取得に失敗しました。時間を置いて再読み込みしてください。");
       } finally {
-        if (disposed) return;
-        setIsLoading(false);
+        if (!disposed) {
+          setIsLoading(false);
+        }
       }
     };
 
