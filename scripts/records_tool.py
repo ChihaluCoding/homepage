@@ -172,6 +172,7 @@ def normalize_record(item: Any) -> dict[str, Any] | None:
     return {
         "id": int(item["id"]),
         "title": item["title"].strip(),
+        "date": str(item.get("date", "")).strip() if item.get("date") else "",
         "description": item["description"].strip(),
         "images": images,
         "youtubeUrls": youtube_urls,
@@ -360,7 +361,11 @@ class RecordsGui:
 
         ttk.Label(form_frame, text="タイトル").pack(anchor=tk.W)
         self.title_entry = ttk.Entry(form_frame)
-        self.title_entry.pack(fill=tk.X, pady=(0, 10))
+        self.title_entry.pack(fill=tk.X, pady=(0, 8))
+
+        ttk.Label(form_frame, text="日付（YYYY-MM-DD、省略可）").pack(anchor=tk.W)
+        self.date_entry = ttk.Entry(form_frame)
+        self.date_entry.pack(fill=tk.X, pady=(0, 10))
 
         ttk.Label(form_frame, text="画像ファイル（public配下）").pack(anchor=tk.W)
         image_entry_row = ttk.Frame(form_frame)
@@ -570,6 +575,9 @@ class RecordsGui:
         self.title_entry.delete(0, tk.END)
         self.title_entry.insert(0, record["title"])
 
+        self.date_entry.delete(0, tk.END)
+        self.date_entry.insert(0, record.get("date", ""))
+
         self.description_text.delete("1.0", tk.END)
         self.description_text.insert("1.0", record["description"])
 
@@ -580,6 +588,7 @@ class RecordsGui:
 
     def clear_form(self) -> None:
         self.title_entry.delete(0, tk.END)
+        self.date_entry.delete(0, tk.END)
         self.image_var.set("")
         self.youtube_var.set("")
         self.description_text.delete("1.0", tk.END)
@@ -616,9 +625,11 @@ class RecordsGui:
             return None
 
         title, description = validated
+        date_val = self.date_entry.get().strip()
         return {
             "id": record_id,
             "title": title,
+            "date": date_val,
             "description": description,
             "images": unique_strings(self.form_images),
             "youtubeUrls": unique_strings(self.form_youtube_urls),
