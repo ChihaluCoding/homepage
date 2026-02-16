@@ -11,7 +11,9 @@ import { Footer } from "@/sections/Footer";
 import "@/index.css";
 
 const YOUTUBE_API_BASE = "https://www.googleapis.com/youtube/v3";
+const NEXTCOUNTS_API_BASE = "https://api-v2.nextcounts.com/api";
 const AUTO_SLIDE_INTERVAL_MS = 5000;
+const LIVE_STATS_INTERVAL_MS = 5000;
 
 type VideoMode = "streams" | "videos";
 
@@ -123,6 +125,13 @@ type YouTubeVideosResponse = {
   }>;
 };
 
+type NextCountsChannelResponse = {
+  success?: boolean;
+  subcount?: number | string;
+  viewcount?: number | string;
+  videos?: number | string;
+};
+
 type YouTubePlayerState = -1 | 0 | 1 | 2 | 3 | 5;
 
 type YouTubePlayerInstance = {
@@ -231,6 +240,17 @@ function toNullableNumber(value: string | undefined): number | null {
   if (!value) return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function toNullableNumberUnknown(value: unknown): number | null {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : null;
+  }
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
 }
 
 function pickThumbnailUrl(thumbnails: YouTubeThumbnailSet | undefined): string {
@@ -435,6 +455,21 @@ async function fetchVideoDetails(videoIds: string[], apiKey: string): Promise<Ch
   }
 
   return ordered;
+}
+
+async function fetchNextCountsChannelStats(channelId: string): Promise<{
+  subscriberCount: number | null;
+  videoCount: number | null;
+  totalViewCount: number | null;
+}> {
+  const url = `${NEXTCOUNTS_API_BASE}/youtube/channel/${channelId}`;
+  const data = await fetchJson<NextCountsChannelResponse>(url);
+
+  return {
+    subscriberCount: toNullableNumberUnknown(data.subcount),
+    videoCount: toNullableNumberUnknown(data.videos),
+    totalViewCount: toNullableNumberUnknown(data.viewcount),
+  };
 }
 
 async function fetchChannelVideos(channel: ChannelProfile, apiKey: string): Promise<ChannelVideo[]> {
@@ -684,6 +719,10 @@ function YouTubePage() {
   );
   const [isLoading, setIsLoading] = useState(true);
   const [apiError, setApiError] = useState<string | null>(null);
+  const channelIdsKey = useMemo(
+    () => channels.map((channel) => `${channel.id}:${channel.channelId}`).join("|"),
+    [channels]
+  );
 
   useEffect(() => {
     let disposed = false;
@@ -748,6 +787,75 @@ function YouTubePage() {
       disposed = true;
     };
   }, [apiKey]);
+
+  useEffect(() => {
+    const targets = channels
+      .map((channel) => ({ id: channel.id, channelId: channel.channelId }))
+      .filter((item) => item.channelId.length > 0);
+
+    if (targets.length === 0) return;
+
+    let disposed = false;
+
+    const refreshLiveStats = async () => {
+      const patches = await Promise.all(
+        targets.map(async (target) => {
+          try {
+            const stats = await fetchNextCountsChannelStats(target.channelId);
+            return { id: target.id, ...stats };
+          } catch {
+            return null;
+          }
+        })
+      );
+
+      if (disposed) return;
+
+      const patchById = new Map(
+        patches
+          .filter((patch): patch is NonNullable<typeof patch> => patch !== null)
+          .map((patch) => [patch.id, patch])
+      );
+
+      setChannels((prev) => {
+        let changed = false;
+        const next = prev.map((channel) => {
+          const patch = patchById.get(channel.id);
+          if (!patch) return channel;
+
+          const nextSubscriberCount = patch.subscriberCount ?? channel.subscriberCount;
+          const nextVideoCount = patch.videoCount ?? channel.videoCount;
+          const nextTotalViewCount = patch.totalViewCount ?? channel.totalViewCount;
+
+          if (
+            nextSubscriberCount === channel.subscriberCount &&
+            nextVideoCount === channel.videoCount &&
+            nextTotalViewCount === channel.totalViewCount
+          ) {
+            return channel;
+          }
+
+          changed = true;
+          return {
+            ...channel,
+            subscriberCount: nextSubscriberCount,
+            videoCount: nextVideoCount,
+            totalViewCount: nextTotalViewCount,
+          };
+        });
+
+        return changed ? next : prev;
+      });
+    };
+
+    refreshLiveStats();
+    const timerId = window.setInterval(refreshLiveStats, LIVE_STATS_INTERVAL_MS);
+
+    return () => {
+      disposed = true;
+      window.clearInterval(timerId);
+    };
+  }, [channelIdsKey]);
   
   return (
     <div className="min-h-screen bg-background">
