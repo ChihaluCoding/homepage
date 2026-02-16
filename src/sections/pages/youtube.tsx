@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom/client'
 import { motion } from "framer-motion";
 import { Youtube, Play, Eye, ThumbsUp, ExternalLink, ChevronLeft, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Navigation } from "@/components/Navigation";
 import { ParticlesBackground } from "@/components/ParticlesBackground";
@@ -973,14 +972,10 @@ function YouTubePage() {
                           )}
                         </div>
                         <div className="flex-grow min-w-0">
-                          <div className="flex items-start justify-between gap-2 mb-2">
+                          <div className="mb-2">
                             <h3 className="flex-1 min-w-0 text-lg leading-tight font-bold text-slate-700 group-hover:text-red-500 transition-colors line-clamp-2 min-h-[3rem]">
                               {channel.title}
                             </h3>
-                            <Badge className="bg-red-500 text-white">
-                              <Youtube className="w-3 h-3 mr-1" />
-                              YouTube
-                            </Badge>
                           </div>
                           <p className="text-slate-500 text-sm mb-3 truncate">
                             @{normalizeHandle(channel.handle)}

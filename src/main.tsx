@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import { motion } from "framer-motion";
-import { Sparkles, Youtube, Twitter, Github, Gamepad2, Wrench, ChevronRight, MapPin, CalendarDays, BookOpen } from "lucide-react";
+import { Sparkles, Youtube, Twitter, Github, ChevronRight, MapPin, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -12,37 +12,6 @@ import "@/index.css";
 
 const baseUrl = import.meta.env.BASE_URL || "/";
 const youtubeChannelUrl = "https://www.youtube.com/@%E3%81%A1%E3%81%AF%E3%82%8B21";
-
-const features = [
-  {
-    icon: Gamepad2,
-    title: "ゲーム",
-    description: "自作ゲームの配布",
-    href: `${baseUrl}games/`,
-    color: "from-purple-400 to-pink-400",
-  },
-  {
-    icon: Wrench,
-    title: "ツール",
-    description: "便利ツールの配布",
-    href: `${baseUrl}tools/`,
-    color: "from-cyan-400 to-sky-400",
-  },
-  {
-    icon: Youtube,
-    title: "YouTube",
-    description: "動画チャンネル",
-    href: youtubeChannelUrl,
-    color: "from-red-400 to-rose-400",
-  },
-  {
-    icon: BookOpen,
-    title: "記録",
-    description: "成長記録ページ",
-    href: `${baseUrl}records/`,
-    color: "from-indigo-400 to-cyan-400",
-  },
-];
 
 const profileSocialLinks = [
   { name: "YouTube", icon: Youtube, href: youtubeChannelUrl, color: "from-red-500 to-rose-500" },
@@ -57,12 +26,12 @@ function HomePage() {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <section className="relative min-h-[78vh] lg:min-h-[82vh] flex items-start justify-center overflow-hidden bg-white">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-white">
         <div className="absolute inset-0 z-0">
           <ParticlesBackground />
         </div>
 
-        <div className="relative z-10 container mx-auto px-4 pt-28 pb-8 lg:pt-32 lg:pb-10">
+        <div className="relative z-10 container mx-auto px-4 py-24 lg:py-28">
           <div className="flex flex-col lg:flex-row items-center justify-center gap-14 lg:gap-24">
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
@@ -231,54 +200,6 @@ function HomePage() {
           />
         </DialogContent>
       </Dialog>
-
-      <section className="py-24 bg-white">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4">
-              <span className="text-slate-700">コンテンツ</span>
-            </h2>
-            <p className="text-slate-500 text-lg max-w-2xl mx-auto">
-              以下のコンテンツをご覧ください
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <motion.div
-                key={feature.title}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <a href={feature.href}>
-                  <Card className="group bg-white border-slate-200 hover:border-cyan-300 transition-all duration-300 cursor-pointer h-full">
-                    <CardContent className="p-8 text-center">
-                      <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform`}>
-                        <feature.icon className="w-8 h-8 text-white" />
-                      </div>
-                      <h3 className="text-xl font-bold text-slate-700 mb-2 group-hover:text-cyan-600 transition-colors">
-                        {feature.title}
-                      </h3>
-                      <p className="text-slate-500">{feature.description}</p>
-                      <div className="mt-4 flex items-center justify-center text-cyan-600 text-sm font-medium">
-                        詳しく見る
-                        <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </a>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       <Footer />
     </div>
