@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Heart, Github, Twitter, Youtube } from "lucide-react";
+import siteIcon from "../../icon.png";
 
 const socialLinks = [
   { name: "YouTube", icon: Youtube, href: "https://www.youtube.com/@%E3%81%A1%E3%81%AF%E3%82%8B21", color: "bg-red-500 hover:bg-red-600" },
@@ -25,9 +26,11 @@ export function Footer() {
             transition={{ duration: 0.6 }}
           >
             <a href={baseUrl} className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-sky-500 flex items-center justify-center shadow-lg shadow-cyan-200">
-                <span className="text-white font-bold text-lg">C</span>
-              </div>
+              <img
+                src={siteIcon}
+                alt="Chihalu Studio"
+                className="w-10 h-10 rounded-xl object-cover"
+              />
               <span className="font-bold text-lg">
                 <span className="text-slate-700">Chihalu</span>
                 <span className="text-cyan-500">Studio</span>
