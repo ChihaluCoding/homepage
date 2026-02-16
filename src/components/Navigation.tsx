@@ -8,10 +8,10 @@ import siteIcon from "../../icon.png";
 const baseUrl = import.meta.env.BASE_URL || "/";
 
 const navItems = [
-  { name: "ホーム", href: baseUrl, icon: Home },
-  { name: "YouTube", href: `${baseUrl}youtube/`, icon: Youtube },
-  { name: "SHOP", href: `${baseUrl}works/`, icon: Package },
-  { name: "記録", href: `${baseUrl}records/`, icon: BookOpen },
+  { name: "ほーむ", href: baseUrl, icon: Home },
+  { name: "ようつべ", href: `${baseUrl}youtube/`, icon: Youtube },
+  { name: "しょっぷ", href: `${baseUrl}works/`, icon: Package },
+  { name: "きろく", href: `${baseUrl}records/`, icon: BookOpen },
 ];
 
 // ナビゲーションリンクのアニメーション
@@ -85,7 +85,7 @@ function AnimatedLogo() {
       >
         <img 
           src={siteIcon} 
-          alt="Chihalu Studio" 
+          alt="ちるにゃすたじお" 
           className="w-12 h-12 lg:w-14 lg:h-14 rounded-xl object-cover shadow-lg"
         />
       </motion.div>
@@ -95,7 +95,7 @@ function AnimatedLogo() {
           animate={{ opacity: isHovered ? [1, 0.7, 1] : 1 }}
           transition={{ duration: 0.5 }}
         >
-          Chihalu
+          ちるにゃ
         </motion.span>
         <motion.span 
           className="text-cyan-500"
@@ -104,7 +104,7 @@ function AnimatedLogo() {
           }}
           transition={{ duration: 0.5 }}
         >
-          Studio
+          すたじお
         </motion.span>
       </span>
     </motion.a>

@@ -96,7 +96,7 @@ export function Footer() {
               >
                 <img
                   src={siteIcon}
-                  alt="Chihalu Studio"
+                  alt="ちるにゃすたじお"
                   className="w-10 h-10 rounded-xl object-cover shadow-md"
                 />
               </motion.div>
@@ -105,7 +105,7 @@ export function Footer() {
                   className="text-slate-700"
                   whileHover={{ color: "#0891b2" }}
                 >
-                  Chihalu
+                  ちるにゃ
                 </motion.span>
                 <motion.span 
                   className="text-cyan-500"
@@ -118,7 +118,7 @@ export function Footer() {
                     repeatDelay: 2
                   }}
                 >
-                  Studio
+                  すたじお
                 </motion.span>
               </span>
             </motion.a>
@@ -145,7 +145,7 @@ export function Footer() {
               viewport={{ once: true }}
               transition={{ delay: 0.5 }}
             >
-              © 2024 Chihalu Studio. All rights reserved.
+              © 2024 ちるにゃすたじお.
             </motion.p>
             <motion.p 
               className="text-sm text-slate-400 flex items-center gap-1"
@@ -154,7 +154,7 @@ export function Footer() {
               viewport={{ once: true }}
               transition={{ delay: 0.6 }}
             >
-              Made with <AnimatedHeart /> by Chihalu
+              みてくれてありがとう <AnimatedHeart /> ちるにゃ
             </motion.p>
           </div>
         </motion.div>

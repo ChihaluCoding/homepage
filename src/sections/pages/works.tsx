@@ -315,7 +315,7 @@ function WorkDetailDialog({
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="overview">概要</TabsTrigger>
             <TabsTrigger value="media">メディア</TabsTrigger>
-            <TabsTrigger value="download">ダウンロード</TabsTrigger>
+            <TabsTrigger value="download">げっと</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4">
@@ -402,7 +402,7 @@ function WorkDetailDialog({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
               >
-                <h4 className="font-medium text-slate-700">YouTube動画</h4>
+                <h4 className="font-medium text-slate-700">ようつべ動画</h4>
                 <div className="space-y-4">
                   {trailerUrls.map((url, index) => (
                     <motion.div 
@@ -485,10 +485,10 @@ function WorkDetailDialog({
               ) : (
                 <>
                   <h4 className="text-lg font-bold text-slate-700 mb-2">
-                    {work.title} をダウンロード
+                    {work.title} をげっと
                   </h4>
                   <p className="text-slate-500 mb-4">
-                    BOOTHにて配布しています。下のボタンからダウンロードページへ移動できます。
+                    BOOTHに置いてあります。下のボタンからページにいけます。
                   </p>
                   <motion.a 
                     href={work.boothUrl} 
@@ -509,7 +509,7 @@ function WorkDetailDialog({
                       />
                       <span className="relative flex items-center">
                         <ExternalLink className="w-4 h-4 mr-2" />
-                        BOOTHでダウンロード
+                        BOOTHでげっと
                       </span>
                     </Button>
                   </motion.a>
@@ -751,7 +751,7 @@ function WorksPage() {
                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                       <Button size="sm" className="bg-cyan-100 text-cyan-600 hover:bg-cyan-500 hover:text-white transition-all">
                         <ExternalLink className="w-4 h-4 mr-1" />
-                        詳細
+                        くわしく
                       </Button>
                     </motion.div>
                   </CardFooter>
@@ -794,7 +794,7 @@ function WorksPage() {
                 >
                   <ChevronLeft className="w-5 h-5 mr-1" />
                 </motion.div>
-                ホームに戻る
+                おうちにもどる
               </Button>
             </motion.a>
           </motion.div>
@@ -817,7 +817,7 @@ function WorksPage() {
               >
                 <Package className="w-4 h-4 text-cyan-500" />
               </motion.div>
-              <span className="text-sm text-cyan-600 font-medium">SHOP</span>
+              <span className="text-sm text-cyan-600 font-medium">しょっぷ</span>
             </motion.div>
 
             <motion.h1 
@@ -827,7 +827,7 @@ function WorksPage() {
               transition={{ delay: 0.3 }}
             >
               <span className="text-gradient">
-                <AnimatedText text="SHOP" delay={0.3} />
+                <AnimatedText text="しょっぷ" delay={0.3} />
               </span>
             </motion.h1>
             <motion.p 
@@ -836,7 +836,7 @@ function WorksPage() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
             >
-              {"制作したゲームやツールをBOOTHにて販売しています。".split("").map((char, index) => (
+              {"つくったゲームやツールを、BOOTHでおとどけしています。".split("").map((char, index) => (
                 <motion.span
                   key={index}
                   initial={{ opacity: 0 }}
@@ -1031,7 +1031,7 @@ function WorksPage() {
                                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                                     <Button size="sm" className="bg-cyan-100 text-cyan-600 hover:bg-cyan-500 hover:text-white transition-all">
                                       <ExternalLink className="w-4 h-4 mr-1" />
-                                      詳細
+                                      くわしく
                                     </Button>
                                   </motion.div>
                                 </CardFooter>

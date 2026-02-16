@@ -215,7 +215,7 @@ function HomePage() {
                     >
                       <Sparkles className="w-4 h-4 text-cyan-500" />
                     </motion.div>
-                    <span className="text-sm text-cyan-700 font-semibold tracking-wide relative z-10">Welcome to my page!</span>
+                    <span className="text-sm text-cyan-700 font-semibold tracking-wide relative z-10">ようこそっ！</span>
                     <motion.div
                       className="absolute inset-0 bg-gradient-to-r from-cyan-200/0 via-cyan-200/50 to-cyan-200/0"
                       initial={{ x: "-100%" }}
@@ -230,7 +230,7 @@ function HomePage() {
                 >
                   <AnimatedText text="ちるにゃ" className="text-slate-700" delay={0.4} />
                   <br className="sm:hidden" />
-                  <AnimatedText text="Studio" className="bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-500 bg-clip-text text-transparent sm:ml-1" delay={0.6} />
+                  <AnimatedText text="すたじお" className="bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-500 bg-clip-text text-transparent sm:ml-1" delay={0.6} />
                 </motion.h1>
 
                 <motion.p
@@ -274,7 +274,7 @@ function HomePage() {
                           transition={{ duration: 0.5 }}
                         />
                         <span className="relative flex items-center">
-                          記録を見る
+                          きろくをみる
                           <motion.div
                             animate={{ x: [0, 5, 0] }}
                             transition={{ duration: 1.5, repeat: Infinity }}
@@ -301,7 +301,7 @@ function HomePage() {
                           whileHover={{ y: 0 }}
                           transition={{ duration: 0.3 }}
                         />
-                        <span className="relative">作品を見る</span>
+                        <span className="relative">さくひんをみる</span>
                       </Button>
                     </a>
                   </motion.div>

@@ -420,7 +420,7 @@ function RecordsPage() {
                 >
                   <ChevronLeft className="w-5 h-5 mr-1" />
                 </motion.div>
-                ホームに戻る
+                おうちにもどる
               </Button>
             </motion.a>
           </motion.div>
@@ -443,7 +443,7 @@ function RecordsPage() {
               >
                 <Sparkles className="w-4 h-4 text-cyan-500" />
               </motion.div>
-              <span className="text-sm text-cyan-600 font-medium">Growth Log</span>
+              <span className="text-sm text-cyan-600 font-medium">せいちょうろぐ</span>
             </motion.div>
 
             <motion.h1 
@@ -453,10 +453,10 @@ function RecordsPage() {
               transition={{ delay: 0.3 }}
             >
               <span className="text-slate-700">
-                <AnimatedText text="成長" delay={0.3} />
+                <AnimatedText text="せいちょう" delay={0.3} />
               </span>
               <span className="text-gradient">
-                <AnimatedText text="記録" delay={0.5} />
+                <AnimatedText text="きろく" delay={0.5} />
               </span>
             </motion.h1>
             <motion.p 
@@ -465,7 +465,7 @@ function RecordsPage() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
             >
-              {"制作活動の進捗をカード形式でまとめています。".split("").map((char, index) => (
+              {"つくったものの進みぐあいを、カードでまとめています。".split("").map((char, index) => (
                 <motion.span
                   key={index}
                   initial={{ opacity: 0 }}
@@ -497,7 +497,7 @@ function RecordsPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              記録データがありません。
+              まだきろくがないみたい…
             </motion.div>
           ) : (
             <motion.div 
@@ -589,14 +589,14 @@ function RecordsPage() {
                           {/* ボトムアクション */}
                           <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
                             <span className="text-xs text-slate-400 font-medium">
-                              記録 #{item.id}
+                              きろく #{item.id}
                             </span>
                             <motion.button
                               whileHover={{ scale: 1.05, x: 3 }}
                               whileTap={{ scale: 0.95 }}
                               className="flex items-center gap-1.5 text-xs font-semibold text-cyan-600 hover:text-cyan-700 transition-colors"
                             >
-                              詳細を見る
+                              くわしくみる
                               <ExternalLink className="w-3.5 h-3.5" />
                             </motion.button>
                           </div>
@@ -625,7 +625,7 @@ function RecordsPage() {
                   className="relative overflow-hidden"
                 >
                   <ChevronLeft className="w-4 h-4 mr-1" />
-                  前へ
+                  まえへ
                 </Button>
               </motion.div>
 
@@ -653,7 +653,7 @@ function RecordsPage() {
                   onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
                 >
-                  次へ
+                  つぎへ
                   <motion.div
                     animate={{ x: [0, 3, 0] }}
                     transition={{ duration: 1.5, repeat: Infinity }}

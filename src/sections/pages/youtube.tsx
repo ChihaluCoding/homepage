@@ -1051,7 +1051,7 @@ function YouTubePage() {
                 >
                   <ChevronLeft className="w-5 h-5 mr-1" />
                 </motion.div>
-                ホームに戻る
+                おうちにもどる
               </Button>
             </motion.a>
           </motion.div>
@@ -1074,7 +1074,7 @@ function YouTubePage() {
               >
                 <Sparkles className="w-4 h-4 text-red-500" />
               </motion.div>
-              <span className="text-sm text-red-600 font-medium">YouTube</span>
+              <span className="text-sm text-red-600 font-medium">ようつべ</span>
             </motion.div>
 
             <motion.h1 
@@ -1087,7 +1087,7 @@ function YouTubePage() {
                 <AnimatedText text="おすすめ" delay={0.3} />
               </span>
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-rose-500 ml-2">
-                <AnimatedText text="チャンネル" delay={0.5} />
+                <AnimatedText text="ちゃんねる" delay={0.5} />
               </span>
             </motion.h1>
             <motion.p 
@@ -1096,7 +1096,7 @@ function YouTubePage() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
             >
-              {"いつも楽しく見させていただいている、おすすめのYouTubeチャンネルを紹介します。".split("").map((char, index) => (
+              {"いつも楽しく見ている、おすすめのようつべちゃんねるを紹介します。".split("").map((char, index) => (
                 <motion.span
                   key={index}
                   initial={{ opacity: 0 }}
@@ -1137,7 +1137,7 @@ function YouTubePage() {
               >
                 <Play className="w-5 h-5 text-red-500" />
               </motion.div>
-              いつも見ているチャンネル
+              よくみるちゃんねる
             </motion.h2>
             
             <motion.div 
@@ -1253,7 +1253,7 @@ function YouTubePage() {
                             />
                             <span className="relative flex items-center justify-center">
                               <ExternalLink className="w-4 h-4 mr-2" />
-                              チャンネルを見る
+                              ちゃんねるをみる
                             </span>
                           </Button>
                         </motion.a>
@@ -1278,7 +1278,7 @@ function YouTubePage() {
               >
                 <ThumbsUp className="w-5 h-5 text-cyan-500" />
               </motion.div>
-              チャンネル別の最新動画
+              ちゃんねるごとの最新どうが
             </motion.h2>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
