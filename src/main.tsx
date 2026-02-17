@@ -14,18 +14,25 @@ const baseUrl = import.meta.env.BASE_URL || "/";
 const youtubeChannelUrl = "https://www.youtube.com/@%E3%81%A1%E3%81%AF%E3%82%8B_Dev";
 const youtubeApiBase = "https://www.googleapis.com/youtube/v3";
 const liveStatusPollMs = 120000;
-const youtubeChannelHandle = "ちはる_Dev";
+const youtubeLivePlaylistId = "PLBh2x2qJSI_opl-isgv2ZzfQuqhEThxLX";
 
-type YouTubeChannelLookupResponse = {
+type YouTubePlaylistItemsResponse = {
+  nextPageToken?: string;
   items?: Array<{
-    id?: string;
+    contentDetails?: {
+      videoId?: string;
+    };
   }>;
 };
 
-type YouTubeLiveSearchResponse = {
+type YouTubeVideosResponse = {
   items?: Array<{
-    id?: {
-      videoId?: string;
+    snippet?: {
+      liveBroadcastContent?: "none" | "live" | "upcoming" | string;
+    };
+    liveStreamingDetails?: {
+      actualStartTime?: string;
+      actualEndTime?: string;
     };
   }>;
 };
@@ -36,6 +43,78 @@ function buildYouTubeApiUrl(endpoint: string, params: Record<string, string | nu
     query.set(key, String(value));
   });
   return `${youtubeApiBase}/${endpoint}?${query.toString()}`;
+}
+
+function chunkArray<T>(values: T[], size: number): T[][] {
+  if (size <= 0) return [values];
+  const chunks: T[][] = [];
+  for (let i = 0; i < values.length; i += size) {
+    chunks.push(values.slice(i, i + size));
+  }
+  return chunks;
+}
+
+function isVideoLive(item: NonNullable<YouTubeVideosResponse["items"]>[number]): boolean {
+  if (item.snippet?.liveBroadcastContent === "live") return true;
+  return Boolean(item.liveStreamingDetails?.actualStartTime && !item.liveStreamingDetails?.actualEndTime);
+}
+
+async function hasLiveInPlaylist(apiKey: string): Promise<boolean> {
+  let pageToken = "";
+  let pageCount = 0;
+  const maxPages = 10; // 50件/ページ x 10ページ = 最大500件を判定
+
+  while (pageCount < maxPages) {
+    const playlistParams: Record<string, string | number> = {
+      part: "contentDetails",
+      playlistId: youtubeLivePlaylistId,
+      maxResults: 50,
+      key: apiKey,
+    };
+    if (pageToken) {
+      playlistParams.pageToken = pageToken;
+    }
+
+    const playlistUrl = buildYouTubeApiUrl("playlistItems", playlistParams);
+    const playlistResponse = await fetch(playlistUrl);
+    if (!playlistResponse.ok) {
+      throw new Error(`YouTube API error: ${playlistResponse.status}`);
+    }
+
+    const playlistData = (await playlistResponse.json()) as YouTubePlaylistItemsResponse;
+    const ids = Array.from(
+      new Set(
+        (playlistData.items ?? [])
+          .map((item) => item.contentDetails?.videoId ?? "")
+          .filter((id) => id.length > 0)
+      )
+    );
+
+    for (const idChunk of chunkArray(ids, 50)) {
+      const videosUrl = buildYouTubeApiUrl("videos", {
+        part: "snippet,liveStreamingDetails",
+        id: idChunk.join(","),
+        key: apiKey,
+      });
+      const videosResponse = await fetch(videosUrl);
+      if (!videosResponse.ok) {
+        throw new Error(`YouTube API error: ${videosResponse.status}`);
+      }
+
+      const videosData = (await videosResponse.json()) as YouTubeVideosResponse;
+      if ((videosData.items ?? []).some(isVideoLive)) {
+        return true;
+      }
+    }
+
+    pageToken = playlistData.nextPageToken ?? "";
+    if (!pageToken) {
+      break;
+    }
+    pageCount += 1;
+  }
+
+  return false;
 }
 
 const profileSocialLinks = [
@@ -51,7 +130,6 @@ function HomePage() {
 
   useEffect(() => {
     let disposed = false;
-    let channelIdCache: string | null = null;
 
     const updateLiveStatus = async () => {
       if (!youtubeApiKey) {
@@ -62,45 +140,7 @@ function HomePage() {
       }
 
       try {
-        if (!channelIdCache) {
-          const channelLookupUrl = buildYouTubeApiUrl("channels", {
-            part: "id",
-            forHandle: youtubeChannelHandle,
-            key: youtubeApiKey,
-          });
-
-          const channelLookupResponse = await fetch(channelLookupUrl);
-          if (!channelLookupResponse.ok) {
-            throw new Error(`YouTube API error: ${channelLookupResponse.status}`);
-          }
-
-          const channelLookupData = (await channelLookupResponse.json()) as YouTubeChannelLookupResponse;
-          channelIdCache = channelLookupData.items?.[0]?.id ?? null;
-        }
-
-        if (!channelIdCache) {
-          if (!disposed) {
-            setIsYouTubeLive(false);
-          }
-          return;
-        }
-
-        const liveSearchUrl = buildYouTubeApiUrl("search", {
-          part: "id",
-          channelId: channelIdCache,
-          eventType: "live",
-          type: "video",
-          maxResults: 1,
-          key: youtubeApiKey,
-        });
-
-        const liveSearchResponse = await fetch(liveSearchUrl);
-        if (!liveSearchResponse.ok) {
-          throw new Error(`YouTube API error: ${liveSearchResponse.status}`);
-        }
-
-        const liveSearchData = (await liveSearchResponse.json()) as YouTubeLiveSearchResponse;
-        const isLive = (liveSearchData.items?.length ?? 0) > 0;
+        const isLive = await hasLiveInPlaylist(youtubeApiKey);
 
         if (!disposed) {
           setIsYouTubeLive(isLive);
