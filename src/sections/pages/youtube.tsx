@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import { motion } from "framer-motion";
-import { Play, Eye, ThumbsUp, ExternalLink, ChevronLeft, BarChart3, Sparkles } from "lucide-react";
+import { Play, Eye, ThumbsUp, ExternalLink, BarChart3, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Navigation } from "@/components/Navigation";
@@ -1016,29 +1016,6 @@ function YouTubePage() {
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mb-8"
-          >
-            <motion.a 
-              href={baseUrl}
-              whileHover={{ x: -5 }}
-              transition={{ type: "spring", stiffness: 400 }}
-            >
-              <Button variant="ghost" className="text-slate-500 hover:text-cyan-600">
-                <motion.div
-                  animate={{ x: [0, -3, 0] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                >
-                  <ChevronLeft className="w-5 h-5 mr-1" />
-                </motion.div>
-                おうちにもどる
-              </Button>
-            </motion.a>
-          </motion.div>
-
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { Package, ExternalLink, Play, ChevronLeft, Gamepad2, Wrench, ArrowUpDown, Zap } from "lucide-react";
+import { Package, ExternalLink, Play, Gamepad2, Wrench, ArrowUpDown, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -776,29 +776,6 @@ function WorksPage() {
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mb-8"
-          >
-            <motion.a 
-              href={baseUrl}
-              whileHover={{ x: -5 }}
-              transition={{ type: "spring", stiffness: 400 }}
-            >
-              <Button variant="ghost" className="text-slate-500 hover:text-cyan-600">
-                <motion.div
-                  animate={{ x: [0, -3, 0] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                >
-                  <ChevronLeft className="w-5 h-5 mr-1" />
-                </motion.div>
-                おうちにもどる
-              </Button>
-            </motion.a>
-          </motion.div>
-
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
