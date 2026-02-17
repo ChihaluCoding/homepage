@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import { motion } from "framer-motion";
-import { Play, Eye, ThumbsUp, ExternalLink, BarChart3, Sparkles } from "lucide-react";
+import { Play, Eye, ThumbsUp, ExternalLink, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Navigation } from "@/components/Navigation";
@@ -52,25 +52,6 @@ type ChannelVideo = {
   thumbnailUrl: string;
   publishedAt: string;
 };
-
-// アニメーションコンポーネント
-function AnimatedText({ text, delay = 0 }: { text: string; delay?: number }) {
-  return (
-    <>
-      {text.split("").map((char, index) => (
-        <motion.span
-          key={index}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: delay + index * 0.03, duration: 0.3 }}
-          style={{ display: "inline-block" }}
-        >
-          {char === " " ? "\u00A0" : char}
-        </motion.span>
-      ))}
-    </>
-  );
-}
 
 // カウントアップアニメーション
 function CountUp({ value, suffix = "" }: { value: number | null; suffix?: string }) {
@@ -1003,35 +984,15 @@ function YouTubePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="mx-auto mb-16 max-w-4xl rounded-3xl border border-slate-200/80 bg-white/86 px-6 py-8 text-center shadow-sm backdrop-blur-md"
+            className="text-center mb-16"
           >
-            <motion.div 
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-100 border border-red-200 mb-6"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2, type: "spring", stiffness: 300 }}
-            >
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-              >
-                <Sparkles className="w-4 h-4 text-red-500" />
-              </motion.div>
-              <span className="text-sm text-red-600 font-medium">ようつべ</span>
-            </motion.div>
-
             <motion.h1 
-              className="text-3xl lg:text-5xl font-bold mb-4"
+              className="text-3xl lg:text-5xl font-bold mb-4 text-slate-800"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <span className="text-slate-800">
-                <AnimatedText text="おすすめ" delay={0.3} />
-              </span>
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-rose-500 ml-2">
-                <AnimatedText text="ちゃんねる" delay={0.5} />
-              </span>
+              おすすめちゃんねる
             </motion.h1>
             <motion.p 
               className="text-slate-700 text-lg max-w-2xl mx-auto"
@@ -1039,16 +1000,7 @@ function YouTubePage() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
             >
-              {"いつも楽しく見ている、おすすめのようつべちゃんねるを紹介します。".split("").map((char, index) => (
-                <motion.span
-                  key={index}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.6 + index * 0.02 }}
-                >
-                  {char}
-                </motion.span>
-              ))}
+              いつも楽しく見ている、おすすめのようつべちゃんねるを紹介します。
             </motion.p>
             {apiError && (
               <motion.p 
