@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, ChevronLeft, ChevronRight, Tag, Clock, ExternalLink } from "lucide-react";
+import { BookOpen, ChevronLeft, ChevronRight, Tag, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import { Navigation } from "@/components/Navigation";
@@ -135,10 +135,12 @@ function normalizeRecords(data: unknown): GrowthRecord[] {
 
       const images = uniqueStrings([
         ...toTextArray(item.images),
+        ...toTextArray(item.image),
         ...(legacyImage ? [legacyImage] : []),
       ]);
       const youtubeUrls = uniqueStrings([
         ...toTextArray(item.youtubeUrls),
+        ...toTextArray(item.youtubeUrl),
         ...(legacyYoutube ? [legacyYoutube] : []),
       ]).filter((url) => Boolean(toYouTubeEmbedUrl(url)));
 
@@ -497,20 +499,6 @@ function RecordsPage() {
                             </div>
                           )}
                           
-                          {/* ボトムアクション */}
-                          <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                            <span className="text-xs text-slate-400 font-medium">
-                              きろく #{item.id}
-                            </span>
-                            <motion.button
-                              whileHover={{ scale: 1.05, x: 3 }}
-                              whileTap={{ scale: 0.95 }}
-                              className="flex items-center gap-1.5 text-xs font-semibold text-cyan-600 hover:text-cyan-700 transition-colors"
-                            >
-                              くわしくみる
-                              <ExternalLink className="w-3.5 h-3.5" />
-                            </motion.button>
-                          </div>
                         </div>
                       </div>
                     </motion.div>
