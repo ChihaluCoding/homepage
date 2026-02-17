@@ -10,6 +10,8 @@ interface Particle {
   speedY: number;
   opacity: number;
   pulse: number;
+  rotation: number;
+  rotationSpeed: number;
   color: string;
   shape: "dot" | "heart" | "star";
 }
@@ -49,6 +51,9 @@ export function ParticlesBackground() {
       context.bezierCurveTo(x + size * 1.45, y + size * 0.9, x + size, y - size * 0.35, x, y + size * 0.28);
       context.closePath();
       context.fill();
+      context.strokeStyle = "rgba(255,255,255,0.85)";
+      context.lineWidth = Math.max(1.1, size * 0.15);
+      context.stroke();
     };
 
     const drawStar = (
@@ -74,26 +79,31 @@ export function ParticlesBackground() {
 
       context.closePath();
       context.fill();
+      context.strokeStyle = "rgba(255,255,255,0.85)";
+      context.lineWidth = Math.max(1.1, outerRadius * 0.18);
+      context.stroke();
     };
 
     const pickShape = (): Particle["shape"] => {
       const roll = Math.random();
-      if (roll < 0.58) return "dot";
-      if (roll < 0.82) return "heart";
+      if (roll < 0.28) return "dot";
+      if (roll < 0.68) return "heart";
       return "star";
     };
 
     // Initialize particles
-    const particleCount = 64;
+    const particleCount = 44;
     const colors = ["#f9a8d4", "#fbcfe8", "#c4b5fd", "#bae6fd", "#a7f3d0", "#fde68a"];
     particlesRef.current = Array.from({ length: particleCount }, () => ({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
-      size: Math.random() * 6 + 3,
-      speedX: (Math.random() - 0.5) * 0.26,
-      speedY: (Math.random() - 0.5) * 0.24,
-      opacity: Math.random() * 0.3 + 0.45,
+      size: Math.random() * 14 + 8,
+      speedX: (Math.random() - 0.5) * 0.2,
+      speedY: (Math.random() - 0.5) * 0.18,
+      opacity: Math.random() * 0.25 + 0.7,
       pulse: Math.random() * Math.PI * 2,
+      rotation: Math.random() * Math.PI * 2,
+      rotationSpeed: (Math.random() - 0.5) * 0.01,
       color: colors[Math.floor(Math.random() * colors.length)],
       shape: pickShape(),
     }));
@@ -104,6 +114,7 @@ export function ParticlesBackground() {
       particlesRef.current.forEach((particle) => {
         // Update position
         particle.pulse += 0.02;
+        particle.rotation += particle.rotationSpeed;
         particle.x += particle.speedX + Math.sin(particle.pulse * 0.8) * 0.05;
         particle.y += particle.speedY + Math.cos(particle.pulse) * 0.05;
 
@@ -114,17 +125,24 @@ export function ParticlesBackground() {
         if (particle.y < -wrapMargin) particle.y = canvas.height + wrapMargin;
         if (particle.y > canvas.height + wrapMargin) particle.y = -wrapMargin;
 
-        const twinkle = 0.82 + Math.sin(particle.pulse * 1.7) * 0.18;
+        const twinkle = 0.86 + Math.sin(particle.pulse * 1.7) * 0.22;
         const drawSize = particle.size * twinkle;
 
         // Soft glow
+        ctx.shadowColor = particle.color;
+        ctx.shadowBlur = drawSize * 1.2;
         ctx.beginPath();
-        ctx.arc(particle.x, particle.y, drawSize * 1.9, 0, Math.PI * 2);
+        ctx.arc(particle.x, particle.y, drawSize * 2.3, 0, Math.PI * 2);
         ctx.fillStyle = particle.color;
-        ctx.globalAlpha = particle.opacity * 0.2;
+        ctx.globalAlpha = particle.opacity * 0.22;
         ctx.fill();
+        ctx.shadowBlur = 0;
 
         // Foreground shape
+        ctx.save();
+        ctx.translate(particle.x, particle.y);
+        ctx.rotate(particle.rotation);
+        ctx.translate(-particle.x, -particle.y);
         ctx.globalAlpha = particle.opacity;
         ctx.fillStyle = particle.color;
         if (particle.shape === "heart") {
@@ -133,9 +151,18 @@ export function ParticlesBackground() {
           drawStar(ctx, particle.x, particle.y, drawSize * 0.75);
         } else {
           ctx.beginPath();
-          ctx.arc(particle.x, particle.y, drawSize * 0.75, 0, Math.PI * 2);
+          ctx.arc(particle.x, particle.y, drawSize * 0.7, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "rgba(255,255,255,0.7)";
+          ctx.lineWidth = Math.max(1, drawSize * 0.1);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(particle.x - drawSize * 0.2, particle.y - drawSize * 0.2, Math.max(1, drawSize * 0.14), 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(255,255,255,0.7)";
+          ctx.globalAlpha = particle.opacity * 0.9;
           ctx.fill();
         }
+        ctx.restore();
       });
 
       ctx.globalAlpha = 1;
@@ -154,7 +181,7 @@ export function ParticlesBackground() {
     <canvas
       ref={canvasRef}
       className="absolute inset-0 z-0 pointer-events-none"
-      style={{ opacity: 0.62 }}
+      style={{ opacity: 0.92 }}
     />
   );
 }
