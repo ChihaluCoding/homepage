@@ -747,7 +747,7 @@ function ChannelVideoCarousel({
               ))}
             </motion.div>
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm">
+            <div className="w-full h-full flex items-center justify-center text-slate-500 text-sm">
               {isLoading ? (
                 <motion.div
                   className="w-6 h-6 border-2 border-red-200 border-t-red-500 rounded-full"
@@ -763,7 +763,7 @@ function ChannelVideoCarousel({
 
         <CardContent className="p-4">
           <motion.p 
-            className="text-xs text-slate-400 mb-2"
+            className="text-xs text-slate-600 mb-2"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.1 }}
@@ -771,7 +771,7 @@ function ChannelVideoCarousel({
             {channel.title}
           </motion.p>
           <motion.h3 
-            className="font-medium text-slate-700 line-clamp-2 mb-2 min-h-[3.2rem]"
+            className="font-medium text-slate-800 line-clamp-2 mb-2 min-h-[3.2rem]"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
@@ -779,7 +779,7 @@ function ChannelVideoCarousel({
             {activeVideo?.title ?? "動画の取得待機中"}
           </motion.h3>
           <motion.div 
-            className="flex items-center gap-4 text-sm text-slate-400"
+            className="flex items-center gap-4 text-sm text-slate-600"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
@@ -836,7 +836,7 @@ function ChannelVideoCarousel({
                 ))}
               </div>
               <motion.span 
-                className="text-[11px] text-slate-400 whitespace-nowrap"
+                className="text-[11px] text-slate-600 whitespace-nowrap"
                 animate={{ opacity: isPlaying ? [0.5, 1, 0.5] : 1 }}
                 transition={{ duration: 1.5, repeat: isPlaying ? Infinity : 0 }}
               >
@@ -1010,7 +1010,7 @@ function YouTubePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-center mb-16"
+            className="mx-auto mb-16 max-w-4xl rounded-3xl border border-slate-200/80 bg-white/86 px-6 py-8 text-center shadow-sm backdrop-blur-md"
           >
             <motion.div 
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-100 border border-red-200 mb-6"
@@ -1033,7 +1033,7 @@ function YouTubePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <span className="text-slate-700">
+              <span className="text-slate-800">
                 <AnimatedText text="おすすめ" delay={0.3} />
               </span>
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-rose-500 ml-2">
@@ -1041,7 +1041,7 @@ function YouTubePage() {
               </span>
             </motion.h1>
             <motion.p 
-              className="text-slate-500 text-lg max-w-2xl mx-auto"
+              className="text-slate-700 text-lg max-w-2xl mx-auto"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
@@ -1059,7 +1059,7 @@ function YouTubePage() {
             </motion.p>
             {apiError && (
               <motion.p 
-                className="text-sm text-rose-500 mt-4"
+                className="text-sm text-rose-600 mt-4"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.7 }}
@@ -1138,10 +1138,10 @@ function YouTubePage() {
                               {channel.title}
                             </motion.h3>
                           </div>
-                          <p className="text-slate-500 text-sm mb-3 truncate">
+                          <p className="text-slate-600 text-sm mb-3 truncate">
                             @{normalizeHandle(channel.handle)}
                           </p>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm text-slate-400">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm text-slate-600">
                             <motion.span 
                               className="flex items-center gap-1 min-w-0"
                               whileHover={{ scale: 1.05, color: "#ef4444" }}

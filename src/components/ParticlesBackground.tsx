@@ -13,7 +13,15 @@ export function ParticlesBackground() {
           backgroundPosition: "top center",
           backgroundRepeat: "repeat-y",
           backgroundSize: "100% auto",
-          opacity: 0.5,
+          opacity: 0.22,
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(to bottom, rgba(255, 255, 255, 0.84), rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.84))",
         }}
       />
     </div>

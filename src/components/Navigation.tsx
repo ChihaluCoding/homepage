@@ -44,7 +44,7 @@ function NavLink({
   return (
     <motion.a
       href={item.href}
-      className={`relative flex items-center gap-2 px-5 py-3 rounded-2xl text-slate-500 transition-all overflow-hidden ${item.color}`}
+      className={`relative flex items-center gap-2 px-5 py-3 rounded-2xl text-slate-700 hover:text-slate-900 transition-all overflow-hidden ${item.color}`}
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 + index * 0.1 }}
@@ -177,8 +177,8 @@ export function Navigation() {
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           isScrolled
-            ? "bg-white/90 backdrop-blur-xl border-b-2 border-pink-100 shadow-lg shadow-pink-100/50"
-            : "bg-white/40 backdrop-blur-md border-b border-white/60"
+            ? "bg-white/95 backdrop-blur-xl border-b border-slate-200 shadow-md"
+            : "bg-white/88 backdrop-blur-lg border-b border-slate-200/80 shadow-sm"
         }`}
       >
         <div className="container mx-auto px-4">
@@ -261,7 +261,7 @@ export function Navigation() {
                     damping: 24,
                   }}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-4 text-2xl font-bold text-slate-500 hover:text-pink-500 transition-colors group"
+                  className="flex items-center gap-4 text-2xl font-bold text-slate-700 hover:text-pink-500 transition-colors group"
                   whileHover={{ scale: 1.1, x: 10 }}
                   whileTap={{ scale: 0.95 }}
                 >
