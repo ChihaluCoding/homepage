@@ -812,7 +812,7 @@ function ChannelVideoCarousel({
 
           {videos.length > 1 && (
             <motion.div 
-              className="mt-3 flex items-center justify-between gap-3"
+              className="mt-3"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.25 }}
@@ -835,13 +835,6 @@ function ChannelVideoCarousel({
                   />
                 ))}
               </div>
-              <motion.span 
-                className="text-[11px] text-slate-600 whitespace-nowrap"
-                animate={{ opacity: isPlaying ? [0.5, 1, 0.5] : 1 }}
-                transition={{ duration: 1.5, repeat: isPlaying ? Infinity : 0 }}
-              >
-                {isPlaying ? "再生中: スライド停止" : "自動スライド中"}
-              </motion.span>
             </motion.div>
           )}
         </CardContent>
