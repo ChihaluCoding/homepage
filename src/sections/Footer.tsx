@@ -22,36 +22,6 @@ function AnimatedHeart() {
   );
 }
 
-// 浮かぶ絵文字
-function FloatingEmoji({
-  emoji,
-  delay,
-  x,
-}: {
-  emoji: string;
-  delay: number;
-  x: string;
-}) {
-  return (
-    <motion.div
-      className="absolute text-2xl"
-      style={{ left: x, bottom: "20%" }}
-      animate={{
-        y: [0, -20, 0],
-        rotate: [0, 10, -10, 0],
-        opacity: [0.5, 1, 0.5],
-      }}
-      transition={{
-        duration: 3 + Math.random() * 2,
-        repeat: Infinity,
-        delay,
-      }}
-    >
-      {emoji}
-    </motion.div>
-  );
-}
-
 // SNSリンク - 公式アイコン使用
 function SocialLink({
   href,
@@ -118,14 +88,6 @@ export function Footer() {
 
   return (
     <footer className="relative pt-24 pb-8 overflow-hidden">
-      {/* 装飾的な絵文字 */}
-      <FloatingEmoji emoji="🌸" delay={0} x="10%" />
-      <FloatingEmoji emoji="✨" delay={1} x="25%" />
-      <FloatingEmoji emoji="💖" delay={2} x="40%" />
-      <FloatingEmoji emoji="🌟" delay={1.5} x="60%" />
-      <FloatingEmoji emoji="💕" delay={0.5} x="75%" />
-      <FloatingEmoji emoji="🎀" delay={2.5} x="90%" />
-
       <div className="container mx-auto px-4 relative z-10">
         {/* Main Content */}
         <div className="mb-16">
@@ -193,7 +155,7 @@ export function Footer() {
             </motion.a>
 
             {/* SNS Links - 公式アイコン */}
-            <div className="flex gap-4 mb-8">
+            <div className="flex gap-4">
               <SocialLink
                 href="https://www.youtube.com/@%E3%81%A1%E3%81%AF%E3%82%8B_Dev"
                 icon={Youtube}
@@ -216,32 +178,6 @@ export function Footer() {
                 delay={2}
               />
             </div>
-
-            {/* Quick Links */}
-            <motion.div
-              className="flex flex-wrap justify-center gap-6 text-sm"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.4 }}
-            >
-              {[
-                { name: "ほーむ", href: baseUrl, emoji: "🏠" },
-                { name: "ようつべ", href: `${baseUrl}youtube/`, emoji: "📺" },
-                { name: "しょっぷ", href: `${baseUrl}works/`, emoji: "🛍️" },
-                { name: "きろく", href: `${baseUrl}records/`, emoji: "📚" },
-              ].map((link) => (
-                <motion.a
-                  key={link.name}
-                  href={link.href}
-                  className="text-slate-400 hover:text-pink-500 transition-colors flex items-center gap-1 font-medium"
-                  whileHover={{ scale: 1.1, y: -2 }}
-                >
-                  <span>{link.emoji}</span>
-                  {link.name}
-                </motion.a>
-              ))}
-            </motion.div>
           </motion.div>
         </div>
 
