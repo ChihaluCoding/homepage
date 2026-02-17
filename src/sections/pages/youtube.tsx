@@ -518,20 +518,17 @@ async function fetchVideoDetails(videoIds: string[], apiKey: string): Promise<Ch
 async function fetchNextCountsChannelStats(channelId: string): Promise<{
   subscriberCount: number | null;
   videoCount: number | null;
-  totalViewCount: number | null;
 }> {
   const url = `${NEXTCOUNTS_API_BASE}/youtube/channel/${channelId}`;
   const data = await fetchJson<NextCountsChannelResponse>(url);
   const apiSubscriberCount = toNullableNumberUnknown(data.subcount);
   const apiVideoCount = toNullableNumberUnknown(data.videos);
-  const apiTotalViewCount = toNullableNumberUnknown(data.viewcount);
 
   const shouldUseEstimate = data.abbreviated === true && (apiSubscriberCount ?? 0) >= 50000;
   if (!shouldUseEstimate) {
     return {
       subscriberCount: apiSubscriberCount,
       videoCount: apiVideoCount,
-      totalViewCount: apiTotalViewCount,
     };
   }
 
@@ -540,18 +537,15 @@ async function fetchNextCountsChannelStats(channelId: string): Promise<{
     const estimate = await fetchJson<NextCountsChannelEstimateResponse>(estimateUrl);
     const estimatedSubscriberCount = toNullableNumberUnknown(estimate.estimatedSubCount);
     const estimatedVideoCount = toNullableNumberUnknown(estimate.videos);
-    const estimatedTotalViewCount = toNullableNumberUnknown(estimate.totalViews);
 
     return {
       subscriberCount: estimatedSubscriberCount ?? apiSubscriberCount,
       videoCount: estimatedVideoCount ?? apiVideoCount,
-      totalViewCount: estimatedTotalViewCount ?? apiTotalViewCount,
     };
   } catch {
     return {
       subscriberCount: apiSubscriberCount,
       videoCount: apiVideoCount,
-      totalViewCount: apiTotalViewCount,
     };
   }
 }
@@ -857,7 +851,6 @@ function ChannelVideoCarousel({
 }
 
 function YouTubePage() {
-  const baseUrl = import.meta.env.BASE_URL || "/";
   const apiKey = import.meta.env.VITE_YOUTUBE_API_KEY?.trim() ?? "";
 
   const [channels, setChannels] = useState<ChannelProfile[]>(() => channelSeeds.map((seed) => fallbackProfile(seed)));
@@ -972,12 +965,10 @@ function YouTubePage() {
 
           const nextSubscriberCount = patch.subscriberCount ?? channel.subscriberCount;
           const nextVideoCount = patch.videoCount ?? channel.videoCount;
-          const nextTotalViewCount = patch.totalViewCount ?? channel.totalViewCount;
 
           if (
             nextSubscriberCount === channel.subscriberCount &&
-            nextVideoCount === channel.videoCount &&
-            nextTotalViewCount === channel.totalViewCount
+            nextVideoCount === channel.videoCount
           ) {
             return channel;
           }
@@ -987,7 +978,6 @@ function YouTubePage() {
             ...channel,
             subscriberCount: nextSubscriberCount,
             videoCount: nextVideoCount,
-            totalViewCount: nextTotalViewCount,
           };
         });
 
