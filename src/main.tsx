@@ -355,22 +355,15 @@ function HomePage() {
                     </div>
 
                     <motion.p 
-                      className="text-slate-500 leading-relaxed mb-6"
+                      className="text-slate-500 leading-relaxed mb-6 whitespace-pre-line"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: 1.6 }}
                     >
-                      {"こんにちは！ちるにゃです。独学でプログラミング/3Dモデリングを始めました。よろしくお願いします！".split("").map((char, index) => (
-                        <motion.span
-                          key={index}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: 1.6 + index * 0.015 }}
-                          style={{ display: "inline-block" }}
-                        >
-                          {char === " " ? "\u00A0" : char}
-                        </motion.span>
-                      ))}
+                      {`こんにちは！ちるにゃです🐱
+好きなVtuberさんの影響でホラゲを開発しようと思い、独学でプログラミング/3Dモデリングなどを勉強中です！
+
+とにかく作ることが大好きです。`}
                     </motion.p>
 
                     <motion.div 
