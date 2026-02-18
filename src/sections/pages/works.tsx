@@ -461,7 +461,15 @@ function WorkDetailDialog({
                   >
                     {work.title}
                   </motion.h4>
-                  <p className="text-slate-500">開発中です</p>
+                  <p className="text-slate-500 mb-3">開発中です</p>
+                  <div className="flex flex-wrap items-center justify-center gap-2">
+                    <Badge variant="outline" className="border-cyan-200 text-cyan-700 bg-white/70">
+                      販売予定なし
+                    </Badge>
+                    <Badge variant="outline" className="border-cyan-200 text-cyan-700 bg-white/70">
+                      発売時期未定
+                    </Badge>
+                  </div>
                 </>
               ) : (
                 <>

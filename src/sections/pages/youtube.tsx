@@ -599,6 +599,7 @@ function ChannelVideoCarousel({
   isLoading: boolean;
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [shouldAnimateSlide, setShouldAnimateSlide] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
   const playerMountRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -612,12 +613,29 @@ function ChannelVideoCarousel({
   }, []);
 
   useEffect(() => {
+    setActiveIndex(0);
+    setShouldAnimateSlide(true);
+  }, [videosKey]);
+
+  useEffect(() => {
     if (videos.length <= 1 || isPlaying) return;
     const timerId = window.setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % videos.length);
+      setActiveIndex((prev) => {
+        const isLoopBack = prev === videos.length - 1;
+        setShouldAnimateSlide(!isLoopBack);
+        return isLoopBack ? 0 : prev + 1;
+      });
     }, AUTO_SLIDE_INTERVAL_MS);
     return () => window.clearInterval(timerId);
   }, [isPlaying, videos.length]);
+
+  useEffect(() => {
+    if (shouldAnimateSlide) return;
+    const frameId = window.requestAnimationFrame(() => {
+      setShouldAnimateSlide(true);
+    });
+    return () => window.cancelAnimationFrame(frameId);
+  }, [shouldAnimateSlide]);
 
   const resolvedActiveIndex = activeIndex < videos.length ? activeIndex : 0;
   const playingIndex = playingVideoId ? videos.findIndex((video) => video.id === playingVideoId) : -1;
@@ -656,6 +674,7 @@ function ChannelVideoCarousel({
               if (event.data === yt.PlayerState.PLAYING) {
                 playingVideoIdRef.current = video.id;
                 setPlayingVideoId(video.id);
+                setShouldAnimateSlide(true);
                 setActiveIndex(index);
                 handlePlayingChange(true);
                 return;
@@ -702,7 +721,7 @@ function ChannelVideoCarousel({
             <motion.div
               className="flex h-full w-full"
               animate={{ x: `-${displayIndex * 100}%` }}
-              transition={{ duration: 0.45, ease: "easeInOut" }}
+              transition={shouldAnimateSlide ? { duration: 0.45, ease: "easeInOut" } : { duration: 0 }}
             >
               {videos.map((video) => (
                 <div key={video.id} className="h-full w-full shrink-0 relative">
@@ -806,6 +825,7 @@ function ChannelVideoCarousel({
                     aria-label={`${channel.title} ${index + 1}件目`}
                     onClick={() => {
                       if (isPlaying) return;
+                      setShouldAnimateSlide(true);
                       setActiveIndex(index);
                     }}
                     whileHover={{ scale: 1.3 }}

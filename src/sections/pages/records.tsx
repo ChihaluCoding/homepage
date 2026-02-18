@@ -182,18 +182,32 @@ function RecordCardMedia({
   fallbackVideo: string | null;
 }) {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [shouldAnimateSlide, setShouldAnimateSlide] = useState(true);
 
   useEffect(() => {
     setActiveImageIndex(0);
+    setShouldAnimateSlide(true);
 
     if (images.length <= 1) return;
 
     const timerId = window.setInterval(() => {
-      setActiveImageIndex((prev) => (prev + 1) % images.length);
+      setActiveImageIndex((prev) => {
+        const isLoopBack = prev === images.length - 1;
+        setShouldAnimateSlide(!isLoopBack);
+        return isLoopBack ? 0 : prev + 1;
+      });
     }, AUTO_SLIDE_INTERVAL_MS);
 
     return () => window.clearInterval(timerId);
   }, [images]);
+
+  useEffect(() => {
+    if (shouldAnimateSlide) return;
+    const frameId = window.requestAnimationFrame(() => {
+      setShouldAnimateSlide(true);
+    });
+    return () => window.cancelAnimationFrame(frameId);
+  }, [shouldAnimateSlide]);
 
   if (images.length > 0) {
     const imageSources = images.map((image) => resolveImageSrc(baseUrl, image));
@@ -203,7 +217,7 @@ function RecordCardMedia({
         <motion.div
           className="flex h-full w-full"
           animate={{ x: `-${activeImageIndex * 100}%` }}
-          transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+          transition={shouldAnimateSlide ? { duration: 0.5, ease: [0.4, 0, 0.2, 1] } : { duration: 0 }}
         >
           {imageSources.map((src, index) => (
             <motion.div 
@@ -226,7 +240,10 @@ function RecordCardMedia({
                 key={index}
                 type="button"
                 aria-label={`画像 ${index + 1} に移動`}
-                onClick={() => setActiveImageIndex(index)}
+                onClick={() => {
+                  setShouldAnimateSlide(true);
+                  setActiveImageIndex(index);
+                }}
                 whileHover={{ scale: 1.3 }}
                 whileTap={{ scale: 0.9 }}
                 className={`h-2 rounded-full transition-all duration-300 ${
