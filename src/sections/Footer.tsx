@@ -124,15 +124,6 @@ export function Footer() {
                     すたじお
                   </motion.span>
                 </motion.span>
-                <motion.p
-                  className="text-slate-400 text-sm mt-1"
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.3 }}
-                >
-                  Game Dev & Creative Studio 🎮🎨
-                </motion.p>
               </div>
             </motion.a>
 
@@ -187,7 +178,7 @@ export function Footer() {
             viewport={{ once: true }}
             transition={{ delay: 0.5 }}
           >
-            © 2024 ちるにゃすたじお. All rights reserved.
+            © 2026 ちるにゃすたじお. All rights reserved.
           </motion.p>
         </motion.div>
       </div>
