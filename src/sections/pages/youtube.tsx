@@ -598,7 +598,7 @@ function ChannelVideoCarousel({
   videos: ChannelVideo[];
   isLoading: boolean;
 }) {
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [slideIndex, setSlideIndex] = useState(0);
   const [shouldAnimateSlide, setShouldAnimateSlide] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
@@ -613,18 +613,15 @@ function ChannelVideoCarousel({
   }, []);
 
   useEffect(() => {
-    setActiveIndex(0);
+    setSlideIndex(0);
     setShouldAnimateSlide(true);
   }, [videosKey]);
 
   useEffect(() => {
     if (videos.length <= 1 || isPlaying) return;
     const timerId = window.setInterval(() => {
-      setActiveIndex((prev) => {
-        const isLoopBack = prev === videos.length - 1;
-        setShouldAnimateSlide(!isLoopBack);
-        return isLoopBack ? 0 : prev + 1;
-      });
+      setShouldAnimateSlide(true);
+      setSlideIndex((prev) => prev + 1);
     }, AUTO_SLIDE_INTERVAL_MS);
     return () => window.clearInterval(timerId);
   }, [isPlaying, videos.length]);
@@ -637,10 +634,14 @@ function ChannelVideoCarousel({
     return () => window.cancelAnimationFrame(frameId);
   }, [shouldAnimateSlide]);
 
-  const resolvedActiveIndex = activeIndex < videos.length ? activeIndex : 0;
+  const hasLoopSlides = videos.length > 1;
+  const visibleSlideIndex = hasLoopSlides && slideIndex > videos.length ? videos.length : slideIndex;
+  const resolvedActiveIndex = videos.length > 0 ? visibleSlideIndex % videos.length : 0;
   const playingIndex = playingVideoId ? videos.findIndex((video) => video.id === playingVideoId) : -1;
-  const displayIndex = playingIndex >= 0 ? playingIndex : resolvedActiveIndex;
-  const activeVideo = videos[displayIndex] ?? null;
+  const displayVideoIndex = playingIndex >= 0 ? playingIndex : resolvedActiveIndex;
+  const displayTrackIndex = playingIndex >= 0 ? playingIndex : visibleSlideIndex;
+  const activeVideo = videos[displayVideoIndex] ?? null;
+  const slideVideos = hasLoopSlides ? [...videos, videos[0]] : videos;
 
   useEffect(() => {
     let disposed = false;
@@ -675,7 +676,7 @@ function ChannelVideoCarousel({
                 playingVideoIdRef.current = video.id;
                 setPlayingVideoId(video.id);
                 setShouldAnimateSlide(true);
-                setActiveIndex(index);
+                setSlideIndex(index);
                 handlePlayingChange(true);
                 return;
               }
@@ -720,31 +721,54 @@ function ChannelVideoCarousel({
           {videos.length > 0 ? (
             <motion.div
               className="flex h-full w-full"
-              animate={{ x: `-${displayIndex * 100}%` }}
+              animate={{ x: `-${displayTrackIndex * 100}%` }}
               transition={shouldAnimateSlide ? { duration: 0.45, ease: "easeInOut" } : { duration: 0 }}
+              onAnimationComplete={() => {
+                if (isPlaying) return;
+                if (!hasLoopSlides) return;
+                if (visibleSlideIndex !== videos.length) return;
+                setShouldAnimateSlide(false);
+                setSlideIndex(0);
+              }}
             >
-              {videos.map((video) => (
-                <div key={video.id} className="h-full w-full shrink-0 relative">
-                  <div
-                    ref={(element) => {
-                      if (element) {
-                        playerMountRefs.current[video.id] = element;
-                      } else {
-                        delete playerMountRefs.current[video.id];
-                      }
-                    }}
-                    className="h-full w-full"
-                  />
-                  <motion.div 
-                    className="absolute bottom-2 right-2 px-2 py-1 bg-black/70 text-white text-xs rounded"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.3 }}
-                  >
-                    {formatDuration(video.durationIso)}
-                  </motion.div>
-                </div>
-              ))}
+              {slideVideos.map((video, index) => {
+                const isLoopClone = hasLoopSlides && index === videos.length;
+
+                return (
+                  <div key={`${video.id}-${index}`} className="h-full w-full shrink-0 relative">
+                    {isLoopClone ? (
+                      <div className="h-full w-full bg-slate-900">
+                        {video.thumbnailUrl ? (
+                          <img src={video.thumbnailUrl} alt={video.title} className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="h-full w-full flex items-center justify-center text-slate-400 text-sm">
+                            サムネイルなし
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div
+                        ref={(element) => {
+                          if (element) {
+                            playerMountRefs.current[video.id] = element;
+                          } else {
+                            delete playerMountRefs.current[video.id];
+                          }
+                        }}
+                        className="h-full w-full"
+                      />
+                    )}
+                    <motion.div 
+                      className="absolute bottom-2 right-2 px-2 py-1 bg-black/70 text-white text-xs rounded"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.3 }}
+                    >
+                      {formatDuration(video.durationIso)}
+                    </motion.div>
+                  </div>
+                );
+              })}
             </motion.div>
           ) : (
             <div className="w-full h-full flex items-center justify-center text-slate-500 text-sm">
@@ -826,12 +850,12 @@ function ChannelVideoCarousel({
                     onClick={() => {
                       if (isPlaying) return;
                       setShouldAnimateSlide(true);
-                      setActiveIndex(index);
+                      setSlideIndex(index);
                     }}
                     whileHover={{ scale: 1.3 }}
                     whileTap={{ scale: 0.9 }}
                     className={`h-2 w-2 rounded-full transition-all ${
-                      index === displayIndex ? "bg-cyan-500" : "bg-slate-300 hover:bg-slate-400"
+                      index === displayVideoIndex ? "bg-cyan-500" : "bg-slate-300 hover:bg-slate-400"
                     }`}
                   />
                 ))}

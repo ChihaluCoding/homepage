@@ -181,21 +181,18 @@ function RecordCardMedia({
   baseUrl: string;
   fallbackVideo: string | null;
 }) {
-  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [slideIndex, setSlideIndex] = useState(0);
   const [shouldAnimateSlide, setShouldAnimateSlide] = useState(true);
 
   useEffect(() => {
-    setActiveImageIndex(0);
+    setSlideIndex(0);
     setShouldAnimateSlide(true);
 
     if (images.length <= 1) return;
 
     const timerId = window.setInterval(() => {
-      setActiveImageIndex((prev) => {
-        const isLoopBack = prev === images.length - 1;
-        setShouldAnimateSlide(!isLoopBack);
-        return isLoopBack ? 0 : prev + 1;
-      });
+      setShouldAnimateSlide(true);
+      setSlideIndex((prev) => prev + 1);
     }, AUTO_SLIDE_INTERVAL_MS);
 
     return () => window.clearInterval(timerId);
@@ -211,15 +208,31 @@ function RecordCardMedia({
 
   if (images.length > 0) {
     const imageSources = images.map((image) => resolveImageSrc(baseUrl, image));
+    const hasLoopSlides = imageSources.length > 1;
+    const visibleSlideIndex = hasLoopSlides && slideIndex > imageSources.length
+      ? imageSources.length
+      : slideIndex;
+    const displayImageIndex = imageSources.length > 0
+      ? visibleSlideIndex % imageSources.length
+      : 0;
+    const slideImages = hasLoopSlides
+      ? [...imageSources, imageSources[0]]
+      : imageSources;
 
     return (
       <div className="relative w-full h-full overflow-hidden bg-slate-900">
         <motion.div
           className="flex h-full w-full"
-          animate={{ x: `-${activeImageIndex * 100}%` }}
+          animate={{ x: `-${visibleSlideIndex * 100}%` }}
           transition={shouldAnimateSlide ? { duration: 0.5, ease: [0.4, 0, 0.2, 1] } : { duration: 0 }}
+          onAnimationComplete={() => {
+            if (!hasLoopSlides) return;
+            if (visibleSlideIndex !== imageSources.length) return;
+            setShouldAnimateSlide(false);
+            setSlideIndex(0);
+          }}
         >
-          {imageSources.map((src, index) => (
+          {slideImages.map((src, index) => (
             <motion.div 
               key={`${src}-${index}`} 
               className="h-full w-full shrink-0 relative"
@@ -242,12 +255,12 @@ function RecordCardMedia({
                 aria-label={`画像 ${index + 1} に移動`}
                 onClick={() => {
                   setShouldAnimateSlide(true);
-                  setActiveImageIndex(index);
+                  setSlideIndex(index);
                 }}
                 whileHover={{ scale: 1.3 }}
                 whileTap={{ scale: 0.9 }}
                 className={`h-2 rounded-full transition-all duration-300 ${
-                  index === activeImageIndex ? "bg-white w-6" : "bg-white/40 w-2 hover:bg-white/60"
+                  index === displayImageIndex ? "bg-white w-6" : "bg-white/40 w-2 hover:bg-white/60"
                 }`}
               />
             ))}
