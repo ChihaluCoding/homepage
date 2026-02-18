@@ -58,7 +58,7 @@ const EMPTY_DATA: WorksData = {
   blenderAddons: [],
 };
 
-type SortType = 'default' | 'price-asc' | 'price-desc';
+type SortType = 'default' | 'price-asc' | 'price-desc' | 'newest' | 'oldest';
 
 // 3Dチルトカード
 function TiltCard({ children, className }: { children: React.ReactNode; className?: string }) {
@@ -589,6 +589,10 @@ function WorksPage() {
 
   const sortGames = (items: GameWork[]) => {
     switch (gameSort) {
+      case 'newest':
+        return [...items].sort((a, b) => b.id - a.id);
+      case 'oldest':
+        return [...items].sort((a, b) => a.id - b.id);
       case 'price-asc':
         return [...items].sort((a, b) => a.price - b.price);
       case 'price-desc':
@@ -600,6 +604,10 @@ function WorksPage() {
 
   const sortToolLikeWorks = (items: ToolLikeWork[]) => {
     switch (assetSort) {
+      case 'newest':
+        return [...items].sort((a, b) => b.id - a.id);
+      case 'oldest':
+        return [...items].sort((a, b) => a.id - b.id);
       case 'price-asc':
         return [...items].sort((a, b) => a.price - b.price);
       case 'price-desc':
@@ -616,7 +624,29 @@ function WorksPage() {
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 0.2 }}
     >
-      <div className="flex gap-2">
+      <div className="flex flex-wrap justify-end gap-2">
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <Button
+            variant={assetSort === 'newest' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setAssetSort(assetSort === 'newest' ? 'default' : 'newest')}
+            className={assetSort === 'newest' ? 'bg-cyan-500 hover:bg-cyan-600' : ''}
+          >
+            <ArrowUpDown className="w-4 h-4 mr-1" />
+            新しい順
+          </Button>
+        </motion.div>
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <Button
+            variant={assetSort === 'oldest' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setAssetSort(assetSort === 'oldest' ? 'default' : 'oldest')}
+            className={assetSort === 'oldest' ? 'bg-cyan-500 hover:bg-cyan-600' : ''}
+          >
+            <ArrowUpDown className="w-4 h-4 mr-1" />
+            古い順
+          </Button>
+        </motion.div>
         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
           <Button
             variant={assetSort === 'price-asc' ? 'default' : 'outline'}
@@ -823,7 +853,29 @@ function WorksPage() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                       >
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap justify-end gap-2">
+                          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                            <Button
+                              variant={gameSort === 'newest' ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => setGameSort(gameSort === 'newest' ? 'default' : 'newest')}
+                              className={gameSort === 'newest' ? 'bg-cyan-500 hover:bg-cyan-600' : ''}
+                            >
+                              <ArrowUpDown className="w-4 h-4 mr-1" />
+                              新しい順
+                            </Button>
+                          </motion.div>
+                          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                            <Button
+                              variant={gameSort === 'oldest' ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => setGameSort(gameSort === 'oldest' ? 'default' : 'oldest')}
+                              className={gameSort === 'oldest' ? 'bg-cyan-500 hover:bg-cyan-600' : ''}
+                            >
+                              <ArrowUpDown className="w-4 h-4 mr-1" />
+                              古い順
+                            </Button>
+                          </motion.div>
                           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                             <Button
                               variant={gameSort === 'price-asc' ? 'default' : 'outline'}

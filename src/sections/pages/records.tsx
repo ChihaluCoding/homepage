@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, ChevronLeft, ChevronRight, Tag, Clock } from "lucide-react";
+import { BookOpen, ChevronLeft, ChevronRight, Tag, Clock, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import { Navigation } from "@/components/Navigation";
@@ -21,6 +21,8 @@ type GrowthRecord = {
   date?: string;
   tags?: string[];
 };
+
+type RecordSortType = "newest" | "oldest";
 
 function SkeletonCard() {
   return (
@@ -162,6 +164,12 @@ function normalizeRecords(data: unknown): GrowthRecord[] {
     });
 }
 
+function parseRecordDate(date?: string): number | null {
+  if (!date) return null;
+  const parsed = Date.parse(date);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 function RecordCardMedia({
   images,
   title,
@@ -268,6 +276,7 @@ function RecordsPage() {
   const baseUrl = import.meta.env.BASE_URL || "/";
   const [records, setRecords] = useState<GrowthRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [recordSort, setRecordSort] = useState<RecordSortType>("newest");
   const [currentPage, setCurrentPage] = useState(() => {
     if (typeof window === "undefined") return 1;
     const pageParam = Number(new URLSearchParams(window.location.search).get("page") ?? "1");
@@ -275,9 +284,28 @@ function RecordsPage() {
     return Math.floor(pageParam);
   });
 
-  const totalPages = Math.max(1, Math.ceil(records.length / ITEMS_PER_PAGE));
+  const sortedRecords = [...records].sort((a, b) => {
+    const aDate = parseRecordDate(a.date);
+    const bDate = parseRecordDate(b.date);
+
+    if (aDate !== null && bDate !== null && aDate !== bDate) {
+      return recordSort === "newest" ? bDate - aDate : aDate - bDate;
+    }
+
+    if (aDate === null && bDate !== null) {
+      return recordSort === "newest" ? 1 : -1;
+    }
+
+    if (aDate !== null && bDate === null) {
+      return recordSort === "newest" ? -1 : 1;
+    }
+
+    return recordSort === "newest" ? b.id - a.id : a.id - b.id;
+  });
+
+  const totalPages = Math.max(1, Math.ceil(sortedRecords.length / ITEMS_PER_PAGE));
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const visibleRecords = records.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const visibleRecords = sortedRecords.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   useEffect(() => {
     let isMounted = true;
@@ -310,6 +338,10 @@ function RecordsPage() {
       setCurrentPage(totalPages);
     }
   }, [currentPage, totalPages]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [recordSort]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -402,7 +434,7 @@ function RecordsPage() {
                 </motion.div>
               ))}
             </motion.div>
-          ) : records.length === 0 ? (
+          ) : sortedRecords.length === 0 ? (
             <motion.div 
               className="text-center text-slate-500 py-12"
               initial={{ opacity: 0, y: 20 }}
@@ -411,25 +443,56 @@ function RecordsPage() {
               まだきろくがないみたい…
             </motion.div>
           ) : (
-            <motion.div 
-              className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8"
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-            >
-              <AnimatePresence>
-                {visibleRecords.map((item) => {
-                  const primaryVideo = item.youtubeUrls[0] ? toYouTubeEmbedUrl(item.youtubeUrls[0]) : null;
-
-                  return (
-                    <motion.div
-                      key={item.id}
-                      variants={itemVariants}
-                      layout
-                      whileHover={{ y: -12, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } }}
-                      className="group"
+            <>
+              <motion.div 
+                className="flex justify-end mb-4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
+                <div className="flex flex-wrap justify-end gap-2">
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Button
+                      variant={recordSort === "newest" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setRecordSort("newest")}
+                      className={recordSort === "newest" ? "bg-cyan-500 hover:bg-cyan-600" : ""}
                     >
-                      <div className="relative bg-white rounded-3xl overflow-hidden shadow-lg shadow-slate-200/50 hover:shadow-2xl hover:shadow-cyan-500/20 transition-all duration-500 h-full flex flex-col">
+                      <ArrowUpDown className="w-4 h-4 mr-1" />
+                      新しい順
+                    </Button>
+                  </motion.div>
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Button
+                      variant={recordSort === "oldest" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setRecordSort("oldest")}
+                      className={recordSort === "oldest" ? "bg-cyan-500 hover:bg-cyan-600" : ""}
+                    >
+                      <ArrowUpDown className="w-4 h-4 mr-1" />
+                      古い順
+                    </Button>
+                  </motion.div>
+                </div>
+              </motion.div>
+              <motion.div 
+                className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8"
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+              >
+                <AnimatePresence>
+                  {visibleRecords.map((item) => {
+                    const primaryVideo = item.youtubeUrls[0] ? toYouTubeEmbedUrl(item.youtubeUrls[0]) : null;
+
+                    return (
+                      <motion.div
+                        key={item.id}
+                        variants={itemVariants}
+                        layout
+                        whileHover={{ y: -12, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } }}
+                        className="group"
+                      >
+                        <div className="relative bg-white rounded-3xl overflow-hidden shadow-lg shadow-slate-200/50 hover:shadow-2xl hover:shadow-cyan-500/20 transition-all duration-500 h-full flex flex-col">
                         {/* 上部グラデーションライン */}
                         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 z-20" />
                         
@@ -495,12 +558,13 @@ function RecordsPage() {
                           )}
                           
                         </div>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </AnimatePresence>
-            </motion.div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              </motion.div>
+            </>
           )}
 
           {!isLoading && totalPages > 1 && (
