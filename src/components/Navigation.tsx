@@ -133,7 +133,7 @@ function AnimatedLogo() {
           animate={{ opacity: isHovered ? [1, 0.7, 1] : 1 }}
           transition={{ duration: 0.5 }}
         >
-          ちるにゃ
+          ちるにゃ。
         </motion.span>
         <motion.span
           className="text-pink-500"

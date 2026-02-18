@@ -214,7 +214,7 @@ export function Hero() {
               >
                 <img
                   src="/avatar.png"
-                  alt="ちるにゃ"
+                  alt="ちるにゃ。"
                   className="w-full h-full object-cover"
                 />
                 {/* オーバーレイ */}
@@ -271,7 +271,7 @@ export function Hero() {
               transition={{ delay: 0.4 }}
               className="text-4xl lg:text-6xl font-bold mb-6"
             >
-              <AnimatedText text="ちるにゃ" className="text-slate-700" delay={0.4} />
+              <AnimatedText text="ちるにゃ。" className="text-slate-700" delay={0.4} />
               <br />
               <AnimatedText
                 text="すたじお"
@@ -303,7 +303,7 @@ export function Hero() {
             >
               ゲーム開発・プログラミング・クリエイティブな活動をしている
               <br />
-              ちるにゃの個人サイトです 💕
+              ちるにゃ。の個人サイトです 💕
             </motion.p>
 
             {/* Buttons */}

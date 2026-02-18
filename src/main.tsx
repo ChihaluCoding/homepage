@@ -342,7 +342,7 @@ function HomePage() {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 1.3 }}
                         >
-                          ちるにゃ
+                          ちるにゃ。
                         </motion.h3>
                         <motion.div 
                           className="flex items-center gap-2 mt-2 text-sm text-slate-400"
@@ -381,7 +381,7 @@ function HomePage() {
                       animate={{ opacity: 1 }}
                       transition={{ delay: 1.6 }}
                     >
-                      {`こんにちは！ちるにゃです🐱
+                      {`こんにちは！ちるにゃ。です🐱
 好きなVtuberさんの影響でホラゲを開発しようと思い、独学でプログラミング/3Dモデリングなどを勉強中です！
 
 とにかく作ることが大好きです。`}

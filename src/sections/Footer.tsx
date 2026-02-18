@@ -127,7 +127,7 @@ export function Footer() {
                   className="font-bold text-2xl block"
                   whileHover={{ scale: 1.05 }}
                 >
-                  <span className="text-slate-700">ちるにゃ</span>
+                  <span className="text-slate-700">ちるにゃ。</span>
                   <motion.span
                     className="text-pink-500"
                     animate={{
@@ -217,7 +217,7 @@ export function Footer() {
           >
             <span>Made with</span>
             <AnimatedHeart />
-            <span>by ちるにゃ 🐱</span>
+            <span>by ちるにゃ。 🐱</span>
           </motion.p>
 
           {/* Back to top button */}
