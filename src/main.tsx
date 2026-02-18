@@ -216,18 +216,9 @@ function HomePage() {
                 <motion.h1
                   className="relative text-5xl sm:text-6xl lg:text-7xl font-black mb-6 tracking-tight leading-[1.05] break-words text-slate-700"
                 >
-                  <span className="text-slate-700">ちるにゃ</span>
+                  <span className="text-slate-700">ちるにゃ。</span>
                   <span className="text-cyan-600">すたじお</span>
                 </motion.h1>
-
-                <motion.p
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.8 }}
-                  className="relative text-xl text-slate-500 mb-9 leading-relaxed"
-                >
-                  自作のゲームやツールを販売したり、これまでの作品記録をまとめたりしています。
-                </motion.p>
 
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -239,7 +230,7 @@ function HomePage() {
                     whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <a href={`${baseUrl}records/`}>
+                    <a href={`${baseUrl}works/`}>
                       <Button
                         size="lg"
                         className="rounded-xl bg-gradient-to-r from-cyan-500 to-sky-500 text-white hover:from-cyan-600 hover:to-sky-600 relative overflow-hidden group"
@@ -250,15 +241,7 @@ function HomePage() {
                           whileHover={{ x: "100%" }}
                           transition={{ duration: 0.5 }}
                         />
-                        <span className="relative flex items-center">
-                          きろくをみる
-                          <motion.div
-                            animate={{ x: [0, 5, 0] }}
-                            transition={{ duration: 1.5, repeat: Infinity }}
-                          >
-                            <ChevronRight className="w-5 h-5 ml-1" />
-                          </motion.div>
-                        </span>
+                        <span className="relative">さくひんをみる</span>
                       </Button>
                     </a>
                   </motion.div>
@@ -266,7 +249,7 @@ function HomePage() {
                     whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <a href={`${baseUrl}works/`}>
+                    <a href={`${baseUrl}records/`}>
                       <Button
                         size="lg"
                         variant="outline"
@@ -278,7 +261,15 @@ function HomePage() {
                           whileHover={{ y: 0 }}
                           transition={{ duration: 0.3 }}
                         />
-                        <span className="relative">さくひんをみる</span>
+                        <span className="relative flex items-center">
+                          きろくをみる
+                          <motion.div
+                            animate={{ x: [0, 5, 0] }}
+                            transition={{ duration: 1.5, repeat: Infinity }}
+                          >
+                            <ChevronRight className="w-5 h-5 ml-1" />
+                          </motion.div>
+                        </span>
                       </Button>
                     </a>
                   </motion.div>
