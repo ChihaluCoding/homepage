@@ -284,13 +284,7 @@ function WorkDetailDialog({
   baseUrl: string;
 }) {
   const [activeTab, setActiveTab] = useState("overview");
-
-  if (!work) return null;
-
-  const trailerUrls = work.trailerUrls ?? [];
-  const screenshots = work.screenshots ?? [];
-  const isInDevelopment = work.inDevelopment;
-  const shouldShowPriceStatus = work.showPriceStatus;
+  const shouldShowPriceStatus = work?.showPriceStatus ?? false;
   const shouldHideDownloadTab = shouldShowPriceStatus;
 
   useEffect(() => {
@@ -298,6 +292,12 @@ function WorkDetailDialog({
       setActiveTab("overview");
     }
   }, [activeTab, shouldHideDownloadTab]);
+
+  if (!work) return null;
+
+  const trailerUrls = work.trailerUrls ?? [];
+  const screenshots = work.screenshots ?? [];
+  const isInDevelopment = work.inDevelopment;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
