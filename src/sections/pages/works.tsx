@@ -291,6 +291,13 @@ function WorkDetailDialog({
   const screenshots = work.screenshots ?? [];
   const isInDevelopment = work.inDevelopment;
   const shouldShowPriceStatus = work.showPriceStatus;
+  const shouldHideDownloadTab = shouldShowPriceStatus;
+
+  useEffect(() => {
+    if (shouldHideDownloadTab && activeTab === "download") {
+      setActiveTab("overview");
+    }
+  }, [activeTab, shouldHideDownloadTab]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -317,10 +324,10 @@ function WorkDetailDialog({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className={`grid w-full ${shouldHideDownloadTab ? "grid-cols-2" : "grid-cols-3"}`}>
             <TabsTrigger value="overview">概要</TabsTrigger>
             <TabsTrigger value="media">メディア</TabsTrigger>
-            <TabsTrigger value="download">げっと</TabsTrigger>
+            {!shouldHideDownloadTab && <TabsTrigger value="download">げっと</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4">
@@ -473,64 +480,66 @@ function WorkDetailDialog({
             )}
           </TabsContent>
 
-          <TabsContent value="download" className="space-y-4">
-            <motion.div 
-              className="bg-gradient-to-br from-cyan-50 to-sky-50 border border-cyan-200 rounded-lg p-6 text-center"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.1 }}
-            >
-              {isInDevelopment ? (
-                <>
-                  <motion.h4 
-                    className="text-lg font-bold text-slate-700 mb-2"
-                    animate={{ opacity: [0.5, 1, 0.5] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
-                    {work.title}
-                  </motion.h4>
-                  <p className="text-slate-500">開発中です</p>
-                </>
-              ) : (
-                <>
-                  <h4 className="text-lg font-bold text-slate-700 mb-2">
-                    {work.title} をげっと
-                  </h4>
-                  <p className="text-slate-500 mb-4">
-                    BOOTHに置いてあります。下のボタンからページにいけます。
-                  </p>
-                  <motion.a 
-                    href={work.boothUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Button 
-                      size="lg" 
-                      className="bg-gradient-to-r from-cyan-500 to-sky-500 hover:from-cyan-600 hover:to-sky-600 text-white relative overflow-hidden group"
+          {!shouldHideDownloadTab && (
+            <TabsContent value="download" className="space-y-4">
+              <motion.div 
+                className="bg-gradient-to-br from-cyan-50 to-sky-50 border border-cyan-200 rounded-lg p-6 text-center"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1 }}
+              >
+                {isInDevelopment ? (
+                  <>
+                    <motion.h4 
+                      className="text-lg font-bold text-slate-700 mb-2"
+                      animate={{ opacity: [0.5, 1, 0.5] }}
+                      transition={{ duration: 2, repeat: Infinity }}
                     >
-                      <motion.span
-                        className="absolute inset-0 bg-white/20"
-                        initial={{ x: "-100%", skewX: -20 }}
-                        whileHover={{ x: "100%" }}
-                        transition={{ duration: 0.5 }}
-                      />
-                      <span className="relative flex items-center">
-                        <ExternalLink className="w-4 h-4 mr-2" />
-                        BOOTHでげっと
-                      </span>
-                    </Button>
-                  </motion.a>
-                </>
+                      {work.title}
+                    </motion.h4>
+                    <p className="text-slate-500">開発中です</p>
+                  </>
+                ) : (
+                  <>
+                    <h4 className="text-lg font-bold text-slate-700 mb-2">
+                      {work.title} をげっと
+                    </h4>
+                    <p className="text-slate-500 mb-4">
+                      BOOTHに置いてあります。下のボタンからページにいけます。
+                    </p>
+                    <motion.a 
+                      href={work.boothUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Button 
+                        size="lg" 
+                        className="bg-gradient-to-r from-cyan-500 to-sky-500 hover:from-cyan-600 hover:to-sky-600 text-white relative overflow-hidden group"
+                      >
+                        <motion.span
+                          className="absolute inset-0 bg-white/20"
+                          initial={{ x: "-100%", skewX: -20 }}
+                          whileHover={{ x: "100%" }}
+                          transition={{ duration: 0.5 }}
+                        />
+                        <span className="relative flex items-center">
+                          <ExternalLink className="w-4 h-4 mr-2" />
+                          BOOTHでげっと
+                        </span>
+                      </Button>
+                    </motion.a>
+                  </>
+                )}
+              </motion.div>
+              {!isInDevelopment && (
+                <p className="text-xs text-slate-400 text-center">
+                  ※BOOTHのアカウントが必要な場合があります
+                </p>
               )}
-            </motion.div>
-            {!isInDevelopment && (
-              <p className="text-xs text-slate-400 text-center">
-                ※BOOTHのアカウントが必要な場合があります
-              </p>
-            )}
-          </TabsContent>
+            </TabsContent>
+          )}
         </Tabs>
       </DialogContent>
     </Dialog>
