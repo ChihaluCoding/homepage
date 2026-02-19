@@ -26,6 +26,7 @@ type GameWork = {
   trailerUrls: string[];
   screenshots: string[];
   inDevelopment: boolean;
+  showPriceStatus: boolean;
 };
 
 type ToolLikeWork = {
@@ -42,6 +43,7 @@ type ToolLikeWork = {
   screenshots: string[];
   isNew: boolean;
   inDevelopment: boolean;
+  showPriceStatus: boolean;
 };
 
 type WorksData = {
@@ -148,6 +150,25 @@ function NewBadge() {
   );
 }
 
+function DevelopmentStatusBadges({
+  centered = false,
+  compact = false,
+}: {
+  centered?: boolean;
+  compact?: boolean;
+}) {
+  return (
+    <div className={centered ? "flex flex-wrap items-center justify-center gap-2" : "flex flex-wrap items-center gap-1"}>
+      <Badge
+        variant="outline"
+        className={compact ? "border-cyan-200 text-cyan-700 bg-white/70 text-[10px] sm:text-xs" : "border-cyan-200 text-cyan-700 bg-white/70"}
+      >
+        非販売
+      </Badge>
+    </div>
+  );
+}
+
 const IMAGE_PATTERN = /\.(png|jpe?g|webp|gif|bmp|svg|avif)(\?.*)?$/i;
 
 function toNumber(value: unknown, fallback = 0) {
@@ -197,6 +218,7 @@ function normalizeGame(item: unknown): GameWork | null {
     trailerUrls: toTrailerUrls(row),
     screenshots: toStringArray(row.screenshots),
     inDevelopment: toBoolean(row.inDevelopment),
+    showPriceStatus: toBoolean(row.showPriceStatus),
   };
 }
 
@@ -220,6 +242,7 @@ function normalizeToolLike(item: unknown): ToolLikeWork | null {
     screenshots: toStringArray(row.screenshots),
     isNew: toBoolean(row.isNew),
     inDevelopment: toBoolean(row.inDevelopment),
+    showPriceStatus: toBoolean(row.showPriceStatus),
   };
 }
 
@@ -267,6 +290,7 @@ function WorkDetailDialog({
   const trailerUrls = work.trailerUrls ?? [];
   const screenshots = work.screenshots ?? [];
   const isInDevelopment = work.inDevelopment;
+  const shouldShowPriceStatus = work.showPriceStatus;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -365,13 +389,17 @@ function WorkDetailDialog({
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
             >
-              <motion.span 
-                className="font-bold text-cyan-600 text-base"
-                animate={{ scale: [1, 1.05, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                {work.price === 0 ? "無料" : `¥${work.price.toLocaleString()}`}
-              </motion.span>
+              {shouldShowPriceStatus ? (
+                <DevelopmentStatusBadges />
+              ) : (
+                <motion.span 
+                  className="font-bold text-cyan-600 text-base"
+                  animate={{ scale: [1, 1.05, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  {work.price === 0 ? "無料" : `¥${work.price.toLocaleString()}`}
+                </motion.span>
+              )}
             </motion.div>
           </TabsContent>
 
@@ -461,15 +489,7 @@ function WorkDetailDialog({
                   >
                     {work.title}
                   </motion.h4>
-                  <p className="text-slate-500 mb-3">開発中です</p>
-                  <div className="flex flex-wrap items-center justify-center gap-2">
-                    <Badge variant="outline" className="border-cyan-200 text-cyan-700 bg-white/70">
-                      販売予定なし
-                    </Badge>
-                    <Badge variant="outline" className="border-cyan-200 text-cyan-700 bg-white/70">
-                      発売時期未定
-                    </Badge>
-                  </div>
+                  <p className="text-slate-500">開発中です</p>
                 </>
               ) : (
                 <>
@@ -759,14 +779,18 @@ function WorksPage() {
                     </motion.div>
                   </CardContent>
 
-                  <CardFooter className="flex items-center justify-between pt-3 border-t border-slate-100 mt-auto">
-                    <motion.span 
-                      className="text-sm font-bold text-cyan-600"
-                      animate={{ scale: [1, 1.05, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    >
-                      {item.price === 0 ? "無料" : `¥${item.price.toLocaleString()}`}
-                    </motion.span>
+                  <CardFooter className="flex items-center justify-between gap-3 pt-3 border-t border-slate-100 mt-auto">
+                    {item.showPriceStatus ? (
+                      <DevelopmentStatusBadges compact />
+                    ) : (
+                      <motion.span 
+                        className="text-sm font-bold text-cyan-600"
+                        animate={{ scale: [1, 1.05, 1] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        {item.price === 0 ? "無料" : `¥${item.price.toLocaleString()}`}
+                      </motion.span>
+                    )}
                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                       <Button size="sm" className="bg-cyan-100 text-cyan-600 hover:bg-cyan-500 hover:text-white transition-all">
                         <ExternalLink className="w-4 h-4 mr-1" />
@@ -1012,14 +1036,18 @@ function WorksPage() {
                                   </motion.div>
                                 </CardContent>
 
-                                <CardFooter className="flex items-center justify-between pt-3 border-t border-slate-100 mt-auto">
-                                  <motion.span 
-                                    className="text-sm font-bold text-cyan-600"
-                                    animate={{ scale: [1, 1.05, 1] }}
-                                    transition={{ duration: 2, repeat: Infinity }}
-                                  >
-                                    {game.price === 0 ? "無料" : `¥${game.price.toLocaleString()}`}
-                                  </motion.span>
+                                <CardFooter className="flex items-center justify-between gap-3 pt-3 border-t border-slate-100 mt-auto">
+                                  {game.showPriceStatus ? (
+                                    <DevelopmentStatusBadges compact />
+                                  ) : (
+                                    <motion.span 
+                                      className="text-sm font-bold text-cyan-600"
+                                      animate={{ scale: [1, 1.05, 1] }}
+                                      transition={{ duration: 2, repeat: Infinity }}
+                                    >
+                                      {game.price === 0 ? "無料" : `¥${game.price.toLocaleString()}`}
+                                    </motion.span>
+                                  )}
                                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                                     <Button size="sm" className="bg-cyan-100 text-cyan-600 hover:bg-cyan-500 hover:text-white transition-all">
                                       <ExternalLink className="w-4 h-4 mr-1" />

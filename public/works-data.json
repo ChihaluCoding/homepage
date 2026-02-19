@@ -13,7 +13,8 @@
       "boothUrl": "https://booth.pm/",
       "trailerUrls": [],
       "screenshots": [],
-      "inDevelopment": true
+      "inDevelopment": true,
+      "showPriceStatus": true
     }
   ],
   "tools": [],

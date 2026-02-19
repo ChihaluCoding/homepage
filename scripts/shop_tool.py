@@ -201,6 +201,7 @@ def normalize_game_item(item: Any) -> dict[str, Any] | None:
         "trailerUrls": trailer_urls,
         "screenshots": unique_strings(to_string_list(item.get("screenshots"))),
         "inDevelopment": to_bool(item.get("inDevelopment"), False),
+        "showPriceStatus": to_bool(item.get("showPriceStatus"), False),
     }
 
 
@@ -231,6 +232,7 @@ def normalize_tool_item(item: Any) -> dict[str, Any] | None:
         "screenshots": unique_strings(to_string_list(item.get("screenshots"))),
         "isNew": to_bool(item.get("isNew"), False),
         "inDevelopment": to_bool(item.get("inDevelopment"), False),
+        "showPriceStatus": to_bool(item.get("showPriceStatus"), False),
     }
 
 
@@ -386,6 +388,14 @@ class ShopGui:
         self.in_development_check = ttk.Checkbutton(extra_row, text="開発中", variable=self.in_development_var)
         self.in_development_check.pack(side=tk.LEFT, padx=(0, 12))
 
+        self.show_price_status_var = tk.BooleanVar(value=False)
+        self.show_price_status_check = ttk.Checkbutton(
+            extra_row,
+            text="価格欄に「非販売」を表示",
+            variable=self.show_price_status_var,
+        )
+        self.show_price_status_check.pack(side=tk.LEFT, padx=(0, 12))
+
         self.is_new_var = tk.BooleanVar(value=False)
         self.is_new_check = ttk.Checkbutton(extra_row, text="NEW", variable=self.is_new_var)
         self.is_new_check.pack(side=tk.LEFT)
@@ -492,6 +502,8 @@ class ShopGui:
             media = f"V{len(item.get('trailerUrls', []))} / S{len(item.get('screenshots', []))}"
             if self.is_item_in_development(item):
                 media = f"{media} / 開発中"
+            if self.is_item_show_price_status(item):
+                media = f"{media} / 非販売"
             self.tree.insert(
                 "",
                 tk.END,
@@ -525,6 +537,9 @@ class ShopGui:
 
     def is_item_in_development(self, item: dict[str, Any]) -> bool:
         return bool(item.get("inDevelopment", False))
+
+    def is_item_show_price_status(self, item: dict[str, Any]) -> bool:
+        return bool(item.get("showPriceStatus", False))
 
     def on_select_row(self, _event: Any = None) -> None:
         selected = self.tree.selection()
@@ -573,6 +588,7 @@ class ShopGui:
         self.description_text.delete("1.0", tk.END)
         self.description_text.insert("1.0", item.get("description", ""))
         self.in_development_var.set(self.is_item_in_development(item))
+        self.show_price_status_var.set(self.is_item_show_price_status(item))
 
         self.form_trailer_urls = list(item.get("trailerUrls", []))
         self.form_screenshots = list(item.get("screenshots", []))
@@ -594,6 +610,7 @@ class ShopGui:
             self.rating_entry.configure(state="disabled")
         self.is_new_var.set(False)
         self.in_development_var.set(False)
+        self.show_price_status_var.set(False)
         self.extra_list_text.delete("1.0", tk.END)
         self.description_text.delete("1.0", tk.END)
         self.trailer_input_var.set("")
@@ -667,6 +684,7 @@ class ShopGui:
                 "trailerUrls": trailer_urls,
                 "screenshots": screenshots,
                 "inDevelopment": bool(self.in_development_var.get()),
+                "showPriceStatus": bool(self.show_price_status_var.get()),
             }
 
         return {
@@ -683,6 +701,7 @@ class ShopGui:
             "screenshots": screenshots,
             "isNew": bool(self.is_new_var.get()),
             "inDevelopment": bool(self.in_development_var.get()),
+            "showPriceStatus": bool(self.show_price_status_var.get()),
         }
 
     def add_item(self) -> None:
