@@ -78,5 +78,16 @@
       "牛乳瓶4.png"
     ],
     "youtubeUrls": []
+  },
+  {
+    "id": 8,
+    "title": "ケーキ",
+    "date": "2026-2-20",
+    "description": "モデリング練習",
+    "images": [
+      "ケーキ.png",
+      "ケーキ2.png"
+    ],
+    "youtubeUrls": []
   }
 ]
