@@ -394,6 +394,19 @@ function RecordsPage() {
     return Array.from({ length: end - adjustedStart + 1 }, (_, i) => adjustedStart + i);
   };
 
+  const scrollToTop = () => {
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    });
+  };
+
+  const handlePageChange = (nextPage: number) => {
+    const clampedPage = Math.min(totalPages, Math.max(1, Math.floor(nextPage)));
+    if (clampedPage === currentPage) return;
+    setCurrentPage(clampedPage);
+    scrollToTop();
+  };
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -608,7 +621,7 @@ function RecordsPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
                   className="relative overflow-hidden"
                 >
@@ -626,7 +639,7 @@ function RecordsPage() {
                   <Button
                     size="sm"
                     variant={page === currentPage ? "default" : "outline"}
-                    onClick={() => setCurrentPage(page)}
+                    onClick={() => handlePageChange(page)}
                     className={page === currentPage ? "bg-cyan-500 hover:bg-cyan-600" : ""}
                   >
                     {page}
@@ -638,7 +651,7 @@ function RecordsPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
                 >
                   つぎへ
