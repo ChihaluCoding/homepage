@@ -9,7 +9,7 @@ import { ParticlesBackground } from "@/components/ParticlesBackground";
 import { Footer } from "@/sections/Footer";
 import "@/index.css";
 
-const ITEMS_PER_PAGE = 15;
+const ITEMS_PER_PAGE = 12;
 const AUTO_SLIDE_INTERVAL_MS = 5000;
 
 type GrowthRecord = {

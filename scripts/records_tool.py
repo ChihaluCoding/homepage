@@ -16,6 +16,7 @@ from __future__ import annotations
 import argparse
 import json
 import shutil
+import subprocess
 import sys
 import tkinter as tk
 from pathlib import Path
@@ -53,10 +54,101 @@ def unique_strings(values: list[str]) -> list[str]:
     return result
 
 
+def run_git_command(git_root: Path, args: list[str]) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["git", "-C", str(git_root), *args],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+
+
+def find_git_root(start_dir: Path) -> Path | None:
+    result = subprocess.run(
+        ["git", "-C", str(start_dir), "rev-parse", "--show-toplevel"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    if result.returncode != 0:
+        return None
+
+    git_root_text = result.stdout.strip()
+    if not git_root_text:
+        return None
+
+    git_root = Path(git_root_text).resolve()
+    return git_root if git_root.exists() else None
+
+
+def format_git_failure(prefix: str, result: subprocess.CompletedProcess[str]) -> str:
+    details = (result.stderr or result.stdout or "").strip()
+    return f"{prefix}: {details}" if details else prefix
+
+
+def git_commit_and_push(paths: list[Path], commit_message: str) -> tuple[bool, str]:
+    git_root = find_git_root(ROOT_DIR)
+    if git_root is None:
+        return (False, "Gitリポジトリが見つかりません。")
+
+    relative_paths: list[str] = []
+    seen: set[str] = set()
+    for path in paths:
+        resolved = path.resolve()
+        try:
+            rel = resolved.relative_to(git_root).as_posix()
+        except ValueError:
+            continue
+
+        if rel in seen:
+            continue
+        seen.add(rel)
+        relative_paths.append(rel)
+
+    if not relative_paths:
+        return (False, "コミット対象のファイルが見つかりません。")
+
+    add_result = run_git_command(git_root, ["add", "--", *relative_paths])
+    if add_result.returncode != 0:
+        return (False, format_git_failure("git add に失敗しました", add_result))
+
+    diff_result = run_git_command(git_root, ["diff", "--cached", "--quiet", "--", *relative_paths])
+    if diff_result.returncode == 0:
+        return (False, "コミット対象に変更がありません。")
+    if diff_result.returncode != 1:
+        return (False, format_git_failure("差分確認に失敗しました", diff_result))
+
+    commit_result = run_git_command(git_root, ["commit", "-m", commit_message, "--", *relative_paths])
+    if commit_result.returncode != 0:
+        return (False, format_git_failure("git commit に失敗しました", commit_result))
+
+    push_result = run_git_command(git_root, ["push"])
+    if push_result.returncode != 0:
+        return (False, format_git_failure("git push に失敗しました", push_result))
+
+    return (True, f"Git commit/push 完了: {commit_message}")
+
+
 def normalize_image_reference(image_value: Any) -> str:
     if not isinstance(image_value, str):
         return ""
     return image_value.strip().replace("\\", "/").lstrip("/")
+
+
+def resolve_public_image_path(public_dir: Path, image_ref: str) -> Path | None:
+    normalized = normalize_image_reference(image_ref)
+    if not normalized:
+        return None
+
+    target = (public_dir / normalized).resolve()
+    try:
+        target.relative_to(public_dir.resolve())
+    except ValueError:
+        return None
+
+    return target
 
 
 def normalize_youtube_url(value: Any) -> str:
@@ -133,14 +225,8 @@ def safe_public_target(public_dir: Path, source_name: str) -> Path:
 
 
 def image_exists_in_public(public_dir: Path, image_ref: str) -> bool:
-    if not image_ref:
-        return False
-    target = (public_dir / image_ref).resolve()
-    try:
-        target.relative_to(public_dir.resolve())
-    except ValueError:
-        return False
-    return target.exists() and target.is_file()
+    target = resolve_public_image_path(public_dir, image_ref)
+    return bool(target and target.exists() and target.is_file())
 
 
 def normalize_record(item: Any) -> dict[str, Any] | None:
@@ -283,7 +369,13 @@ def cmd_add(args: argparse.Namespace) -> int:
 
     records.append(record)
     save_records(args.data_file, records)
+    commit_paths = [args.data_file] + [PUBLIC_DIR / image_ref for image_ref in image_refs]
+    git_ok, git_message = git_commit_and_push(commit_paths, "add")
     print(f'追加しました: id={record["id"]}, title="{record["title"]}", {media_summary(record)}')
+    if git_ok:
+        print(git_message)
+    else:
+        print(f"警告: {git_message}")
     return 0
 
 
@@ -297,7 +389,12 @@ def cmd_delete(args: argparse.Namespace) -> int:
         return 1
 
     save_records(args.data_file, new_records)
+    git_ok, git_message = git_commit_and_push([args.data_file], "delete")
     print(f"id={target_id} を削除しました。")
+    if git_ok:
+        print(git_message)
+    else:
+        print(f"警告: {git_message}")
     return 0
 
 
@@ -554,6 +651,14 @@ class RecordsGui:
         self.image_var.set("")
         self.refresh_image_candidates()
 
+    def sync_git(self, commit_message: str, image_refs: list[str] | None = None) -> tuple[bool, str]:
+        paths: list[Path] = [self.data_file]
+        for image_ref in image_refs or []:
+            target = resolve_public_image_path(self.public_dir, image_ref)
+            if target and target.exists() and target.is_file():
+                paths.append(target)
+        return git_commit_and_push(paths, commit_message)
+
     def remove_selected_image(self) -> None:
         selected = self.image_listbox.curselection()
         if not selected:
@@ -681,7 +786,12 @@ class RecordsGui:
         self.refresh_records()
         self.tree.selection_set(str(record["id"]))
         self.tree.focus(str(record["id"]))
-        self.status_var.set(f'追加しました: id={record["id"]}')
+        git_ok, git_message = self.sync_git("add", record.get("images", []))
+        if git_ok:
+            self.status_var.set(f'追加しました: id={record["id"]} / {git_message}')
+        else:
+            self.status_var.set(f'追加しました: id={record["id"]} / Git未反映')
+            messagebox.showwarning("Git同期", git_message)
 
     def update_selected_record(self) -> None:
         selected = self.tree.selection()
@@ -709,7 +819,12 @@ class RecordsGui:
         self.refresh_records()
         self.tree.selection_set(str(selected_id))
         self.tree.focus(str(selected_id))
-        self.status_var.set(f"id={selected_id} を更新しました。")
+        git_ok, git_message = self.sync_git("update", record.get("images", []))
+        if git_ok:
+            self.status_var.set(f"id={selected_id} を更新しました。 / {git_message}")
+        else:
+            self.status_var.set(f"id={selected_id} を更新しました。 / Git未反映")
+            messagebox.showwarning("Git同期", git_message)
 
     def delete_selected_record(self) -> None:
         selected = self.tree.selection()
@@ -734,7 +849,12 @@ class RecordsGui:
         save_records(self.data_file, self.records)
         self.refresh_records()
         self.clear_form()
-        self.status_var.set(f"id={selected_id} を削除しました。")
+        git_ok, git_message = self.sync_git("delete")
+        if git_ok:
+            self.status_var.set(f"id={selected_id} を削除しました。 / {git_message}")
+        else:
+            self.status_var.set(f"id={selected_id} を削除しました。 / Git未反映")
+            messagebox.showwarning("Git同期", git_message)
 
 
 def run_gui(data_file: Path) -> int:

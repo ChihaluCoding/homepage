@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 import json
 import shutil
+import subprocess
 import sys
 import tkinter as tk
 from pathlib import Path
@@ -60,6 +61,83 @@ COLOR_CLASS_OPTIONS = [
 ]
 
 
+def run_git_command(git_root: Path, args: list[str]) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["git", "-C", str(git_root), *args],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+
+
+def find_git_root(start_dir: Path) -> Path | None:
+    result = subprocess.run(
+        ["git", "-C", str(start_dir), "rev-parse", "--show-toplevel"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    if result.returncode != 0:
+        return None
+
+    git_root_text = result.stdout.strip()
+    if not git_root_text:
+        return None
+
+    git_root = Path(git_root_text).resolve()
+    return git_root if git_root.exists() else None
+
+
+def format_git_failure(prefix: str, result: subprocess.CompletedProcess[str]) -> str:
+    details = (result.stderr or result.stdout or "").strip()
+    return f"{prefix}: {details}" if details else prefix
+
+
+def git_commit_and_push(paths: list[Path], commit_message: str) -> tuple[bool, str]:
+    git_root = find_git_root(ROOT_DIR)
+    if git_root is None:
+        return (False, "Gitリポジトリが見つかりません。")
+
+    relative_paths: list[str] = []
+    seen: set[str] = set()
+    for path in paths:
+        resolved = path.resolve()
+        try:
+            rel = resolved.relative_to(git_root).as_posix()
+        except ValueError:
+            continue
+
+        if rel in seen:
+            continue
+        seen.add(rel)
+        relative_paths.append(rel)
+
+    if not relative_paths:
+        return (False, "コミット対象のファイルが見つかりません。")
+
+    add_result = run_git_command(git_root, ["add", "--", *relative_paths])
+    if add_result.returncode != 0:
+        return (False, format_git_failure("git add に失敗しました", add_result))
+
+    diff_result = run_git_command(git_root, ["diff", "--cached", "--quiet", "--", *relative_paths])
+    if diff_result.returncode == 0:
+        return (False, "コミット対象に変更がありません。")
+    if diff_result.returncode != 1:
+        return (False, format_git_failure("差分確認に失敗しました", diff_result))
+
+    commit_result = run_git_command(git_root, ["commit", "-m", commit_message, "--", *relative_paths])
+    if commit_result.returncode != 0:
+        return (False, format_git_failure("git commit に失敗しました", commit_result))
+
+    push_result = run_git_command(git_root, ["push"])
+    if push_result.returncode != 0:
+        return (False, format_git_failure("git push に失敗しました", push_result))
+
+    return (True, f"Git commit/push 完了: {commit_message}")
+
+
 def unique_strings(values: list[str]) -> list[str]:
     result: list[str] = []
     seen: set[str] = set()
@@ -104,6 +182,20 @@ def split_lines(value: str) -> list[str]:
 
 def normalize_image_reference(value: str) -> str:
     return value.strip().replace("\\", "/").lstrip("/")
+
+
+def resolve_public_image_path(public_dir: Path, image_ref: str) -> Path | None:
+    normalized = normalize_image_reference(image_ref)
+    if not normalized:
+        return None
+
+    target = (public_dir / normalized).resolve()
+    try:
+        target.relative_to(public_dir.resolve())
+    except ValueError:
+        return None
+
+    return target
 
 
 def is_image_file(path: Path) -> bool:
@@ -456,6 +548,30 @@ class ShopGui:
 
         self.update_dynamic_labels()
 
+    def sync_git(self, commit_message: str, image_refs: list[str] | None = None) -> tuple[bool, str]:
+        paths: list[Path] = [self.data_file]
+        for image_ref in image_refs or []:
+            target = resolve_public_image_path(self.public_dir, image_ref)
+            if target and target.exists() and target.is_file():
+                paths.append(target)
+        return git_commit_and_push(paths, commit_message)
+
+    def collect_commit_image_refs(self, item: dict[str, Any]) -> list[str]:
+        refs: list[str] = []
+
+        if self.is_game_type():
+            main_visual = item.get("image")
+        else:
+            main_visual = item.get("icon")
+        if isinstance(main_visual, str):
+            refs.append(main_visual)
+
+        screenshots = item.get("screenshots")
+        if isinstance(screenshots, list):
+            refs.extend(value for value in screenshots if isinstance(value, str))
+
+        return unique_strings(refs)
+
     def reload_data(self) -> None:
         self.works_data = load_works_data(self.data_file)
         self.refresh_list()
@@ -716,7 +832,12 @@ class ShopGui:
         self.refresh_list()
         self.tree.selection_set(str(item["id"]))
         self.tree.focus(str(item["id"]))
-        self.status_var.set(f"追加しました: id={item['id']}")
+        git_ok, git_message = self.sync_git("add", self.collect_commit_image_refs(item))
+        if git_ok:
+            self.status_var.set(f"追加しました: id={item['id']} / {git_message}")
+        else:
+            self.status_var.set(f"追加しました: id={item['id']} / Git未反映")
+            messagebox.showwarning("Git同期", git_message)
 
     def update_item(self) -> None:
         selected = self.tree.selection()
@@ -745,7 +866,12 @@ class ShopGui:
         self.refresh_list()
         self.tree.selection_set(str(selected_id))
         self.tree.focus(str(selected_id))
-        self.status_var.set(f"更新しました: id={selected_id}")
+        git_ok, git_message = self.sync_git("update", self.collect_commit_image_refs(item))
+        if git_ok:
+            self.status_var.set(f"更新しました: id={selected_id} / {git_message}")
+        else:
+            self.status_var.set(f"更新しました: id={selected_id} / Git未反映")
+            messagebox.showwarning("Git同期", git_message)
 
     def delete_item(self) -> None:
         selected = self.tree.selection()
@@ -768,7 +894,12 @@ class ShopGui:
         save_works_data(self.data_file, self.works_data)
         self.refresh_list()
         self.clear_form()
-        self.status_var.set(f"削除しました: id={selected_id}")
+        git_ok, git_message = self.sync_git("delete")
+        if git_ok:
+            self.status_var.set(f"削除しました: id={selected_id} / {git_message}")
+        else:
+            self.status_var.set(f"削除しました: id={selected_id} / Git未反映")
+            messagebox.showwarning("Git同期", git_message)
 
     def add_trailer_url(self) -> None:
         raw = self.trailer_input_var.get().strip()
